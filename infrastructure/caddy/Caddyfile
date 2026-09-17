@@ -1,0 +1,25 @@
+{$CADDY_SITE_ADDRESS::80} {
+    encode zstd gzip
+
+    handle /static/* {
+        root * /srv/static
+        file_server
+    }
+
+    handle {
+        reverse_proxy backend:8000 {
+            health_uri /api/v1/health/
+            health_interval 30s
+            health_timeout 5s
+            health_headers {
+                Host localhost
+            }
+        }
+    }
+
+    header {
+        X-Content-Type-Options nosniff
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+}

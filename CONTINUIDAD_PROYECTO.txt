@@ -1,0 +1,273 @@
+CONTINUIDAD DEL PROYECTO CABINA 360
+Fecha de corte: 17 de septiembre de 2026
+Directorio: /home/mike/proyecto_cabina360
+
+OBJETIVO
+SaaS para operadores de cabinas de video 360. El sistema debe permitir crear eventos,
+grabar sin conexión, conservar los archivos localmente, sincronizarlos de manera
+reanudable y entregar cada video mediante una página pública y un código QR.
+
+
+ESTADO GENERAL
+
+Fases implementadas en código: 0 a 7.
+Siguiente fase: 8, entrega pública.
+Fases restantes del roadmap: 8, 9 y 10.
+
+El roadmap detallado está en docs/roadmap.md.
+Los contratos y decisiones técnicas están en docs/api.md, docs/android-sync.md,
+docs/storage.md y docs/architecture.md.
+
+
+TRABAJO TERMINADO
+
+FASE 0 - CONTRATOS Y ALCANCE
+- Alcance del MVP y criterios de aceptación.
+- Arquitectura general y límites entre Android, backend, workers y almacenamiento.
+- Contrato preliminar de API.
+- Estrategia offline, tokens públicos, cargas reanudables y almacenamiento.
+- Estructura de navegación Android.
+
+FASE 1 - BASE EJECUTABLE
+- Backend Django con configuración por ambientes.
+- PostgreSQL, Redis, Celery y Caddy definidos en Docker Compose.
+- Usuario personalizado por correo electrónico.
+- Endpoint de salud.
+- Formato uniforme de errores y logging.
+
+FASE 2 - IDENTIDAD Y NEGOCIO
+- Usuarios, operadores, membresías y dispositivos.
+- Planes y suscripciones.
+- JWT con refresh, rotación y revocación.
+- Login, logout, perfil y consulta de suscripción.
+- Aislamiento de información entre operadores.
+- Django Admin.
+
+FASE 3 - EVENTOS Y ACCESO PÚBLICO INICIAL
+- Tipos configurables de eventos.
+- CRUD y estados de eventos.
+- Configuración de video versionada.
+- Tokens públicos no enumerables.
+- Reserva de tokens individuales para videos.
+- Páginas públicas iniciales de evento y video pendiente.
+
+FASE 4 - ALMACENAMIENTO Y CARGAS
+- StorageService y proveedor local.
+- Sesiones de subida reanudables.
+- Partes idempotentes con checksum SHA-256.
+- Composición y validación final de MP4.
+- Cuotas, limpieza de sesiones incompletas y protección entre operadores.
+
+FASE 5 - ANDROID BASE
+- Proyecto Android en android/ con Gradle Wrapper.
+- Kotlin, Jetpack Compose y Material 3.
+- Login y renovación automática de JWT.
+- Tokens cifrados con Android Keystore.
+- Navegación Inicio, Plan y Cuenta.
+- Room, DataStore, Retrofit y repositorios.
+- Listado y creación de eventos.
+- Persistencia offline de eventos.
+- Preferencias de subida.
+
+FASE 6 - CAPTURA DURABLE
+- CameraX con preview, permisos de cámara y micrófono.
+- Cuenta regresiva y grabación de duración fija.
+- Finalización manual o automática.
+- Verificación de espacio libre.
+- Registro de la captura en Room antes de grabar.
+- Archivo temporal durante la grabación.
+- fsync y renombrado atómico al archivo original.
+- Recuperación de capturas interrumpidas al iniciar la app.
+- Galería local básica dentro del evento.
+- Flujo rápido para grabar otro video.
+
+FASE 7 - PROCESAMIENTO Y SINCRONIZACIÓN
+- Worker persistente para generar el archivo final básico.
+- Conservación separada del original y el archivo final.
+- WorkManager con trabajo único por video.
+- Restricción Solo Wi-Fi o Wi-Fi/datos móviles.
+- Backoff exponencial.
+- Reserva y consumo de tokens públicos.
+- SHA-256 del archivo final.
+- Cliente de subida por partes con reanudación.
+- Consulta de partes confirmadas para no repetirlas.
+- Confirmación final del servidor.
+- Progreso y errores persistidos en Room.
+- Restauración de trabajos al reiniciar la aplicación.
+- Limpieza local configurable en 1, 3, 7 días o siempre.
+- La limpieza únicamente considera videos confirmados como UPLOADED.
+
+
+VERIFICACIONES REALIZADAS
+
+Android:
+- 6 pruebas unitarias aprobadas.
+- testDebugUnitTest aprobado.
+- assembleDebug aprobado.
+- APK generado en:
+  android/app/build/outputs/apk/debug/app-debug.apk
+
+Backend:
+- Antes de Android se ejecutó la suite completa con 42 pruebas aprobadas.
+- Después se agregó y verificó por separado la prueba del comando seed_demo.
+- No se pudo ejecutar Docker Compose en este entorno porque Docker Engine no está instalado.
+
+
+CUENTA DE DEMOSTRACIÓN
+
+Primero iniciar el backend y ejecutar:
+
+docker compose exec backend python manage.py seed_demo
+
+Credenciales:
+Correo: demo@cabina360.local
+Contraseña: Cabina360Demo!
+
+El comando es idempotente y renueva la suscripción demo durante 30 días.
+
+
+CONFIGURACIÓN PARA PROBAR ANDROID
+
+- Requiere JDK 17.
+- Requiere Android SDK 37.
+- El proyecto utiliza Gradle 9.6 mediante android/gradlew.
+- La variante debug usa http://10.0.2.2/ como API_BASE_URL.
+- 10.0.2.2 funciona desde el emulador para acceder a la computadora anfitriona.
+- En un teléfono físico se debe cambiar API_BASE_URL por la IP local o una URL HTTPS.
+- La variante release no permite tráfico HTTP sin cifrar.
+
+Comandos de verificación desde android/:
+
+./gradlew testDebugUnitTest assembleDebug
+
+
+ARCHIVOS IMPORTANTES
+
+Backend:
+- backend/config/
+- backend/apps/accounts/
+- backend/apps/operators/
+- backend/apps/subscriptions/
+- backend/apps/events/
+- backend/apps/videos/
+- backend/apps/uploads/
+- backend/apps/storage/
+
+Android:
+- android/app/src/main/java/com/cabina360/operator/AppContainer.kt
+- android/app/src/main/java/com/cabina360/operator/data/Repositories.kt
+- android/app/src/main/java/com/cabina360/operator/data/local/CabinaDatabase.kt
+- android/app/src/main/java/com/cabina360/operator/data/capture/CaptureRepository.kt
+- android/app/src/main/java/com/cabina360/operator/data/sync/SyncRepository.kt
+- android/app/src/main/java/com/cabina360/operator/data/remote/CabinaApi.kt
+- android/app/src/main/java/com/cabina360/operator/ui/AppUi.kt
+- android/app/src/main/java/com/cabina360/operator/ui/CaptureUi.kt
+
+
+LIMITACIONES Y VALIDACIONES PENDIENTES
+
+- La captura debe probarse en uno o más teléfonos físicos.
+- La sincronización debe probarse de extremo a extremo con backend, Redis, Celery y
+  almacenamiento ejecutándose juntos.
+- Falta una prueba manual de pérdida de red entre partes y recuperación posterior.
+- Falta matar el proceso durante captura, procesamiento y subida en un dispositivo real.
+- CameraX selecciona la cámara trasera y usa fallback de calidad; todavía falta una
+  interfaz para elegir lente principal, ultra gran angular, telefoto o frontal según
+  las capacidades reales del dispositivo.
+- El procesamiento de Fase 7 crea un archivo final básico copiando el original. Los
+  efectos, reversa, cámara lenta, overlays y marcos pertenecen a la Fase 10.
+- La galería Android todavía es básica: no tiene miniaturas, reproductor ni detalle
+  completo del video.
+- Registro de usuario, recuperación de contraseña, portada del evento y editor avanzado
+  de configuración descritos en estructura_app.txt todavía no están implementados.
+- No se ha configurado un proveedor real de pagos.
+- Room muestra una advertencia de exportación de esquema durante KSP; conviene aplicar
+  el plugin de Room y guardar los esquemas antes de continuar agregando migraciones.
+
+
+LO QUE FALTA
+
+FASE 8 - ENTREGA PÚBLICA
+- Generar miniaturas mediante Celery y ffmpeg/ffprobe.
+- Cambiar Video de UPLOADED a PROCESSING y READY.
+- Implementar galería pública mobile-first por evento.
+- Implementar página pública individual del video.
+- Reproducción con solicitudes HTTP Range.
+- Descarga segura a través de Caddy sin exponer rutas internas.
+- Generar y mostrar QR general del evento e individual por video en Android.
+- Añadir preview, enlace y acción Grabar otro después de una captura sincronizada.
+- Agregar estadísticas mínimas de acceso sin datos invasivos.
+- Probar estados pendiente, disponible, expirado y no encontrado.
+
+FASE 9 - RETENCIÓN, OPERACIÓN Y HARDENING
+- Tareas idempotentes de expiración y eliminación.
+- Backups automáticos y prueba real de restauración.
+- Rate limiting, límites de solicitud y cabeceras de seguridad.
+- Observabilidad, métricas y alertas.
+- Recuperación frente a disco lleno.
+- Revisión de secretos, HTTPS y configuración de producción Debian.
+- Prueba completa de aceptación.
+
+FASE 10 - EXPERIENCIA DE VIDEO
+- Definir interfaz modular VideoEffect.
+- Slow motion, reversa, slow+reverse, boomerang y combinación 360.
+- Overlays de texto, imagen, logo, stickers y marcos.
+- Coordenadas normalizadas para portrait y landscape.
+- Presets de eventos.
+- Procesamiento con Media3 Transformer, MediaCodec/OpenGL o FFmpeg según mediciones.
+- Pruebas térmicas, memoria, batería, concurrencia y calidad.
+
+TRABAJO DE PRODUCTO ADICIONAL DESPUÉS DEL MVP
+- Registro y recuperación de contraseña.
+- Portadas de eventos desde cámara o galería.
+- Edición de perfil.
+- Administración real de suscripciones/pagos.
+- Galería Android completa, reproducción y detalle.
+- Presets configurables.
+- Mejoras visuales y de accesibilidad basadas en pruebas con operadores.
+
+
+PLAN EXACTO PARA RETOMAR EN OTRA SESIÓN
+
+1. Leer este archivo, docs/roadmap.md, docs/api.md y docs/android-sync.md.
+2. Revisar el estado del workspace sin borrar cambios existentes.
+3. Ejecutar las pruebas del backend y Android para establecer una línea base.
+4. Configurar la exportación de esquemas Room y guardar el esquema de la versión 3.
+5. Iniciar la Fase 8 por el backend:
+   a) agregar ffprobe para validar metadata;
+   b) crear tarea Celery de miniatura y transición READY;
+   c) guardar miniatura mediante StorageService;
+   d) añadir pruebas idempotentes.
+6. Implementar entrega HTTP:
+   a) endpoint o respuesta interna protegida para Caddy;
+   b) soporte Range 206 y error 416;
+   c) descarga y reproducción sin revelar storage_key;
+   d) pruebas de autorización pública y expiración.
+7. Completar las plantillas públicas mobile-first del evento y video.
+8. Integrar Android:
+   a) dependencia para generar QR localmente;
+   b) pantalla QR del evento;
+   c) pantalla Video listo con QR individual;
+   d) preview, compartir enlace y Grabar otro;
+   e) estados offline y pendiente de subida.
+9. Ejecutar pruebas backend y Android.
+10. Levantar el sistema completo y realizar una prueba física:
+    grabar tres videos, cortar la red, recuperarla, confirmar subida, escanear QR,
+    reproducir y descargar.
+11. Documentar resultados y actualizar el roadmap antes de iniciar la Fase 9.
+
+
+CRITERIO PARA CERRAR LA FASE 8
+
+La fase termina cuando un operador puede grabar un video, cerrar o dejar la app en
+segundo plano, recuperar Internet, completar la subida, ver el estado READY, mostrar
+un QR y hacer que otro teléfono reproduzca y descargue el video mediante la página
+pública sin acceder a rutas internas del servidor.
+
+
+NOTA PARA LA SIGUIENTE SESIÓN
+
+La instrucción recomendada es:
+
+"Lee CONTINUIDAD_PROYECTO.txt y continúa desde la Fase 8. Verifica primero el estado
+actual y conserva las decisiones ya implementadas."

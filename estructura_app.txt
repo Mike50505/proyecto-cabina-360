@@ -1,0 +1,2173 @@
+Quiero que implementes y estructures la interfaz completa de la aplicación Android SaaS para cabinas de video 360.
+
+La aplicación está dirigida principalmente a operadores de cabinas 360 que trabajan en bodas, XV años, graduaciones, fiestas y eventos similares.
+
+La prioridad debe ser:
+
+* facilidad de uso
+* rapidez durante un evento
+* interfaz limpia
+* pocos pasos
+* botones grandes
+* funcionamiento offline
+* diseño moderno
+* experiencia premium
+
+Visualmente quiero una combinación de:
+
+* Apple
+* Google
+* Linear
+* Notion
+
+Evitar una interfaz recargada.
+
+Quiero una aplicación moderna, minimalista, con tarjetas grandes, buenos espacios, animaciones suaves y jerarquía visual clara.
+
+La aplicación será desarrollada con:
+
+* Kotlin
+* Jetpack Compose
+* Material 3
+
+Toda la navegación debe estar preparada para funcionar con ViewModels y arquitectura limpia.
+
+---
+
+# 1. FLUJO GENERAL DE LA APLICACIÓN
+
+El flujo principal será:
+
+Abrir aplicación
+
+↓
+
+Login / Registro
+
+↓
+
+Inicio
+
+↓
+
+Crear evento
+
+↓
+
+Configurar evento
+
+↓
+
+Entrar al evento
+
+↓
+
+Grabar video
+
+↓
+
+Procesar video
+
+↓
+
+Guardar localmente
+
+↓
+
+Subir automáticamente
+
+↓
+
+Generar QR
+
+↓
+
+Cliente escanea QR
+
+↓
+
+Página web del evento
+
+↓
+
+Descargar video
+
+---
+
+# 2. PANTALLA DE LOGIN
+
+La primera pantalla debe permitir:
+
+* iniciar sesión
+* registrarse
+* recuperar contraseña
+
+Campos:
+
+Correo electrónico
+
+Contraseña
+
+Botón:
+
+Iniciar sesión
+
+Debajo:
+
+¿No tienes una cuenta?
+
+Crear cuenta
+
+También:
+
+¿Olvidaste tu contraseña?
+
+El diseño debe ser simple y limpio.
+
+---
+
+# 3. REGISTRO
+
+Pantalla de registro.
+
+Campos iniciales:
+
+Nombre
+
+Apellido
+
+Correo electrónico
+
+Contraseña
+
+Confirmar contraseña
+
+Nombre del negocio o empresa
+
+Teléfono opcional
+
+Botón:
+
+Crear cuenta
+
+Después del registro iniciar sesión automáticamente si es seguro hacerlo.
+
+---
+
+# 4. NAVEGACIÓN PRINCIPAL
+
+Después de iniciar sesión debe existir una Bottom Navigation Bar.
+
+Debe tener únicamente tres secciones principales:
+
+INICIO
+
+SUSCRIPCIÓN
+
+CUENTA
+
+Ejemplo:
+
+┌───────────────────────────────┐
+│                               │
+│          CONTENIDO            │
+│                               │
+│                               │
+├───────────────────────────────┤
+│ 🏠 Inicio │ 💳 Plan │ 👤 Cuenta │
+└───────────────────────────────┘
+
+Evitar agregar demasiadas secciones.
+
+Las funciones relacionadas con eventos deben vivir principalmente dentro de Inicio.
+
+---
+
+# 5. PANTALLA PRINCIPAL — INICIO
+
+Esta es la pantalla más importante de la aplicación.
+
+Debe mostrar en la parte superior:
+
+saludo
+
+Ejemplo:
+
+Hola, Miguel
+
+Debajo puede aparecer:
+
+Listo para tu próximo evento.
+
+Después debe existir un botón muy grande y claramente visible:
+
+* INICIAR EVENTO
+
+Este debe ser el elemento principal de la pantalla.
+
+Ejemplo:
+
+┌───────────────────────────────┐
+│                               │
+│      + INICIAR EVENTO         │
+│                               │
+└───────────────────────────────┘
+
+Debajo mostrar:
+
+Eventos recientes
+
+Los eventos deben mostrarse mediante tarjetas.
+
+Cada tarjeta puede contener:
+
+Portada del evento
+
+Nombre
+
+Tipo de evento
+
+Fecha
+
+Número de videos
+
+Estado
+
+Ejemplo:
+
+┌───────────────────────────────┐
+│ [      FOTO / PORTADA      ]  │
+│                               │
+│ Boda Ana & Carlos             │
+│ Boda                          │
+│                               │
+│ 42 videos                     │
+│ 14 septiembre 2026            │
+└───────────────────────────────┘
+
+Los eventos más recientes deben aparecer primero.
+
+Permitir scroll vertical.
+
+---
+
+# 6. CREAR EVENTO
+
+Cuando el usuario pulse:
+
+INICIAR EVENTO
+
+NO abrir inmediatamente una pantalla completamente nueva.
+
+Primero mostrar un Modal Bottom Sheet o diálogo grande.
+
+Debe aparecer una ventana flotante moderna.
+
+Título:
+
+Crear nuevo evento
+
+Campos:
+
+Nombre del evento
+
+Ejemplo:
+
+Boda Ana y Carlos
+
+Después:
+
+Tipo de evento
+
+Mostrar opciones mediante chips, iconos o tarjetas pequeñas.
+
+Tipos iniciales:
+
+Boda
+
+XV años
+
+Cumpleaños
+
+Graduación
+
+Evento empresarial
+
+Fiesta
+
+Otro
+
+No hardcodear de forma que sea imposible agregar tipos posteriormente.
+
+Después permitir:
+
+Agregar portada
+
+El operador podrá:
+
+* tomar una fotografía
+* seleccionar imagen de galería
+
+La portada representará visualmente el evento.
+
+Botón final:
+
+CONTINUAR
+
+No crear definitivamente el evento todavía hasta terminar la configuración.
+
+---
+
+# 7. CONFIGURACIÓN DEL EVENTO
+
+Después de pulsar CONTINUAR abrir:
+
+Configuración del evento
+
+Esta pantalla debe tener diferentes secciones.
+
+No mostrar 20 controles al mismo tiempo.
+
+Utilizar tarjetas o secciones desplegables.
+
+Secciones:
+
+VIDEO
+
+EFECTOS
+
+CUENTA REGRESIVA
+
+DISEÑO / OVERLAYS
+
+---
+
+# 8. CONFIGURACIÓN DE VIDEO
+
+Primera sección:
+
+VIDEO
+
+Permitir seleccionar:
+
+Resolución
+
+Ejemplos:
+
+720p
+
+1080p
+
+4K
+
+Solamente mostrar resoluciones soportadas realmente por el dispositivo.
+
+Después:
+
+Cámara
+
+Opciones dependiendo del dispositivo:
+
+Principal
+
+Ultra gran angular
+
+Telefoto
+
+Frontal
+
+No asumir que todos los teléfonos tienen las mismas cámaras.
+
+Detectar las cámaras disponibles mediante CameraX / Camera2.
+
+Después:
+
+Bitrate
+
+Opciones recomendadas:
+
+Automático
+
+Bajo
+
+Medio
+
+Alto
+
+Avanzado
+
+El usuario normal no necesita ver Mbps directamente si no quiere.
+
+Si selecciona:
+
+Avanzado
+
+entonces permitir establecer bitrate manualmente.
+
+Después:
+
+Duración del video
+
+Ejemplos:
+
+5 segundos
+
+8 segundos
+
+10 segundos
+
+15 segundos
+
+20 segundos
+
+Personalizado
+
+Este valor determina cuánto tiempo grabará automáticamente la cámara.
+
+---
+
+# 9. EFECTOS DEL VIDEO
+
+Crear sección:
+
+EFECTOS
+
+El operador podrá definir un efecto predeterminado que será aplicado a TODOS los videos del evento.
+
+Opciones iniciales:
+
+Normal
+
+Cámara lenta
+
+Reversa
+
+Slow Motion + Reversa
+
+Boomerang
+
+Combinación 360
+
+Diseñar el sistema de efectos modular.
+
+Conceptualmente:
+
+VideoEffect
+
+NormalEffect
+
+SlowMotionEffect
+
+ReverseEffect
+
+SlowReverseEffect
+
+BoomerangEffect
+
+Esto permitirá agregar más efectos posteriormente.
+
+---
+
+# 10. CONFIGURACIÓN DEL EFECTO
+
+Dependiendo del efecto permitir cambiar valores.
+
+Por ejemplo:
+
+Cámara lenta
+
+Velocidad:
+
+0.25x
+
+0.5x
+
+0.75x
+
+Reversa:
+
+activar/desactivar
+
+Ejemplo de secuencia futura:
+
+Normal 2 segundos
+
+↓
+
+Slow motion 4 segundos
+
+↓
+
+Reversa 4 segundos
+
+↓
+
+Final normal
+
+No es obligatorio implementar un editor profesional en el MVP.
+
+Pero diseñar internamente los efectos como una secuencia configurable.
+
+---
+
+# 11. CUENTA REGRESIVA
+
+Crear sección:
+
+CONTADOR
+
+El usuario debe poder seleccionar cuánto tiempo pasa desde que toca iniciar hasta que comienza realmente la grabación.
+
+Opciones:
+
+Sin contador
+
+3 segundos
+
+5 segundos
+
+10 segundos
+
+Personalizado
+
+Durante la grabación debe aparecer:
+
+3
+
+2
+
+1
+
+con una animación grande en pantalla.
+
+Después comenzar automáticamente la grabación.
+
+---
+
+# 12. DISEÑO DEL VIDEO
+
+Crear otra sección:
+
+DISEÑO
+
+Esta sección permitirá agregar elementos permanentes encima del video.
+
+Los elementos deben aplicarse automáticamente a todos los videos del evento.
+
+Permitir agregar:
+
+Marcos
+
+Texto
+
+Stickers
+
+Logos
+
+El sistema debe trabajar mediante overlays.
+
+Conceptualmente:
+
+VideoOverlay
+
+tipos:
+
+FRAME
+
+TEXT
+
+STICKER
+
+IMAGE
+
+LOGO
+
+---
+
+# 13. EDITOR DE OVERLAYS
+
+Crear una pantalla o editor simple donde se vea una representación del video.
+
+Ejemplo:
+
+┌───────────────────────────────┐
+│                               │
+│          PREVIEW              │
+│                               │
+│          BODA 2026            │
+│                               │
+│                        ❤️     │
+└───────────────────────────────┘
+
+El usuario podrá añadir:
+
+Texto
+
+Sticker
+
+Imagen
+
+Marco
+
+Logo
+
+Y moverlos dentro del área visible.
+
+Permitir:
+
+posición X
+
+posición Y
+
+escala
+
+rotación
+
+opacidad
+
+Para texto:
+
+fuente
+
+tamaño
+
+alineación
+
+No es necesario implementar un Photoshop.
+
+Debe ser extremadamente sencillo.
+
+---
+
+# 14. MARCOS
+
+Permitir seleccionar marcos predeterminados.
+
+Ejemplos:
+
+Minimalista
+
+Boda
+
+XV años
+
+Cumpleaños
+
+Elegante
+
+Neón
+
+Fiesta
+
+También permitir posteriormente que un usuario suba su propio PNG transparente.
+
+Diseñar el sistema para soportarlo aunque en MVP pueda comenzar con plantillas incluidas.
+
+---
+
+# 15. GUARDAR CONFIGURACIÓN DEL EVENTO
+
+Después de configurar todo mostrar:
+
+GUARDAR Y COMENZAR EVENTO
+
+Al pulsar:
+
+crear el Event en backend si todavía no existe
+
+guardar configuración
+
+guardar una copia local en Room
+
+abrir la interfaz del evento
+
+La configuración debe guardarse también localmente.
+
+Esto es importante porque durante un evento podría perderse Internet.
+
+---
+
+# 16. PANTALLA PRINCIPAL DEL EVENTO
+
+Esta será una de las pantallas más utilizadas.
+
+Arriba mostrar:
+
+Nombre del evento
+
+Ejemplo:
+
+Boda Ana & Carlos
+
+Estado:
+
+Evento activo
+
+Después mostrar un botón grande:
+
+INICIAR A GRABAR
+
+o preferiblemente:
+
+GRABAR VIDEO
+
+Debe ser extremadamente fácil de tocar.
+
+Debajo:
+
+Videos del evento
+
+Mostrar tarjetas o miniaturas de los videos ya grabados.
+
+Ejemplo:
+
+┌──────┐ ┌──────┐
+│ ▶    │ │ ▶    │
+│      │ │      │
+│ ✓    │ │ ↑    │
+└──────┘ └──────┘
+
+Cada video debe mostrar su estado.
+
+Ejemplo:
+
+✓ Subido
+
+↑ Subiendo
+
+○ Pendiente
+
+! Error
+
+También mostrar un indicador general:
+
+35 videos
+
+3 pendientes
+
+32 sincronizados
+
+---
+
+# 17. BOTÓN QR
+
+Dentro de la pantalla del evento debe existir también:
+
+MOSTRAR QR
+
+Al pulsarlo:
+
+mostrar el QR grande en pantalla
+
+junto con:
+
+Nombre del evento
+
+URL
+
+Botón compartir
+
+Pero el QR del VIDEO individual solamente deberá mostrarse después de terminar y procesar una grabación.
+
+---
+
+# 18. PANTALLA DE CÁMARA
+
+Al pulsar:
+
+GRABAR VIDEO
+
+abrir inmediatamente la cámara.
+
+La interfaz debe estar diseñada para usarse rápidamente.
+
+Pantalla completa.
+
+Preview de cámara ocupando prácticamente toda la pantalla.
+
+En la parte inferior:
+
+BOTÓN GRANDE DE GRABACIÓN
+
+Ejemplo:
+
+```
+    ●
+```
+
+También mostrar:
+
+duración configurada
+
+efecto activo
+
+cámara seleccionada
+
+En una esquina:
+
+GALERÍA
+
+representada mediante:
+
+miniatura del último video
+
+Al pulsar la miniatura abrir:
+
+videos grabados durante este evento
+
+sin abandonar completamente el flujo de grabación.
+
+---
+
+# 19. INICIAR GRABACIÓN
+
+Cuando el operador toque el botón:
+
+Si existe contador configurado:
+
+mostrar:
+
+3
+
+2
+
+1
+
+Después comenzar grabación.
+
+Durante grabación:
+
+mostrar progreso.
+
+Por ejemplo:
+
+████████░░
+
+6 / 8 segundos
+
+Si duración configurada:
+
+8 segundos
+
+la grabación debe detenerse automáticamente.
+
+También permitir cancelar cuando sea necesario.
+
+---
+
+# 20. FINALIZAR GRABACIÓN
+
+Cuando termine la grabación:
+
+PRIMER PASO:
+
+guardar inmediatamente archivo ORIGINAL local.
+
+Esto debe ocurrir ANTES de procesar efectos.
+
+Nunca perder la grabación original debido a un fallo en procesamiento.
+
+Flujo:
+
+Camera
+
+↓
+
+original.mp4
+
+↓
+
+guardar localmente
+
+↓
+
+registrar en Room
+
+↓
+
+estado:
+
+PROCESSING
+
+---
+
+# 21. PROCESAMIENTO
+
+Después aplicar:
+
+* slow motion
+* reversa
+* overlays
+* marcos
+* textos
+* stickers
+* logos
+
+según configuración del evento.
+
+Para procesamiento Android utilizar una solución apropiada basada en:
+
+Media3 Transformer
+
+MediaCodec
+
+OpenGL
+
+o FFmpeg si existe una razón técnica suficientemente sólida.
+
+Evitar procesamiento innecesariamente lento.
+
+El procesamiento debe ejecutarse fuera del hilo principal.
+
+---
+
+# 22. ORIGINAL Y VIDEO PROCESADO
+
+Mantener conceptualmente:
+
+original file
+
+processed file
+
+Ejemplo:
+
+video_001_original.mp4
+
+video_001_final.mp4
+
+El video que debe subirse a la nube/servidor es:
+
+video_001_final.mp4
+
+No subir necesariamente el original.
+
+Posteriormente puede existir configuración para conservar originales.
+
+---
+
+# 23. ESTADO DE PROCESAMIENTO
+
+Después de terminar grabación mostrar pantalla:
+
+Procesando tu video...
+
+Mostrar:
+
+barra de progreso
+
+o
+
+animación
+
+Pero permitir que el operador regrese rápidamente a la cámara si el teléfono tiene capacidad suficiente.
+
+Idealmente poder procesar un video mientras se prepara la siguiente grabación.
+
+Evitar bloquear todo el evento.
+
+---
+
+# 24. SUBIDA
+
+Cuando termina procesamiento:
+
+guardar video final localmente
+
+↓
+
+estado:
+
+PENDING_UPLOAD
+
+↓
+
+WorkManager
+
+↓
+
+subida automática cuando haya conexión
+
+No depender de que el operador mantenga la aplicación abierta.
+
+---
+
+# 25. INTERNET MALO
+
+La cámara debe seguir funcionando aunque:
+
+no exista Wi-Fi
+
+no existan datos móviles
+
+el backend no responda
+
+el servidor esté temporalmente caído
+
+El operador debe poder continuar grabando.
+
+Ejemplo:
+
+Evento activo
+
+Videos:
+
+12
+
+✓ 3 subidos
+
+○ 9 esperando conexión
+
+El trabajo del operador nunca debe detenerse por Internet.
+
+---
+
+# 26. DESPUÉS DE PROCESAR
+
+Cuando termine el procesamiento del video mostrar:
+
+VIDEO LISTO
+
+Mostrar preview.
+
+Después generar o mostrar:
+
+QR DEL VIDEO
+
+Este QR debe redirigir directamente a una página pública donde el cliente pueda:
+
+ver el video
+
+reproducirlo
+
+descargarlo
+
+Ejemplo:
+
+https://videos.midominio.com/v/{PUBLIC_VIDEO_TOKEN}
+
+Este token debe ser seguro y difícil de adivinar.
+
+---
+
+# 27. QR INDIVIDUAL
+
+Pantalla después de cada grabación:
+
+┌───────────────────────────────┐
+│                               │
+│         VIDEO LISTO           │
+│                               │
+│        [ PREVIEW ]            │
+│                               │
+│          ███████              │
+│          QR CODE              │
+│          ███████              │
+│                               │
+│ Escanea para obtener tu video │
+│                               │
+│       [NUEVO VIDEO]           │
+└───────────────────────────────┘
+
+Botón principal:
+
+GRABAR OTRO
+
+Al pulsarlo:
+
+volver inmediatamente a la cámara.
+
+Este flujo debe ser extremadamente rápido porque puede existir una fila de personas esperando usar la cabina.
+
+---
+
+# 28. VIDEO TODAVÍA NO SUBIDO
+
+Existe un caso importante.
+
+Si no hay Internet:
+
+el video se procesa localmente
+
+pero todavía no existe en servidor.
+
+El QR puede representar una URL preasignada al video siempre que el backend ya haya podido crear el token anteriormente.
+
+Por lo tanto, preferentemente cuando se crea el evento generar un pool de identificadores/tokens de video o implementar una estrategia que permita trabajar offline.
+
+Investigar y diseñar una solución segura.
+
+Por ejemplo:
+
+el dispositivo puede crear UUID v4 localmente
+
+y utilizarlo como identificador global del Video.
+
+Cuando vuelva Internet:
+
+Android registra/sincroniza:
+
+video UUID
+
+event UUID
+
+archivo
+
+De esta forma Android no depende del backend para generar el identificador.
+
+Sin embargo:
+
+si el cliente escanea el QR mientras todavía no se ha subido el archivo, la página podría mostrar:
+
+"Tu video todavía se está preparando. Intenta nuevamente en unos minutos."
+
+No inventar sistemas frágiles.
+
+Documentar la estrategia elegida.
+
+---
+
+# 29. GALERÍA DEL EVENTO
+
+Desde la cámara o desde la pantalla del evento debe poder abrirse:
+
+Galería del evento
+
+Mostrar todos los videos.
+
+Cada video:
+
+miniatura
+
+hora
+
+estado
+
+Ejemplo:
+
+Video 24
+
+18:42
+
+✓ Disponible
+
+o:
+
+Video 25
+
+18:43
+
+○ Esperando Internet
+
+o:
+
+Video 26
+
+18:45
+
+⚙ Procesando
+
+Permitir seleccionar un video.
+
+---
+
+# 30. DETALLE DEL VIDEO
+
+Al abrir un video mostrar:
+
+Preview
+
+Reproducir
+
+QR
+
+Compartir enlace
+
+Estado de subida
+
+Tamaño
+
+Hora
+
+Opcional:
+
+Eliminar
+
+Reprocesar
+
+Nunca permitir eliminar accidentalmente un archivo que todavía no se haya sincronizado sin una advertencia clara.
+
+---
+
+# 31. INFORMACIÓN DE SUSCRIPCIÓN
+
+Segunda sección principal de Bottom Navigation:
+
+SUSCRIPCIÓN
+
+Mostrar:
+
+Plan actual
+
+Estado
+
+Fecha de renovación
+
+Uso
+
+Ejemplo:
+
+PLAN PRO
+
+Activo
+
+Renueva:
+
+15 octubre
+
+Este mes:
+
+7 / 20 eventos
+
+Almacenamiento:
+
+12 GB / 50 GB
+
+Videos:
+
+283
+
+Botón:
+
+Administrar suscripción
+
+Durante desarrollo puede no existir todavía el sistema de pagos.
+
+Pero diseñar la interfaz completa.
+
+---
+
+# 32. CUENTA
+
+Tercera sección:
+
+CUENTA
+
+Mostrar:
+
+Foto/avatar
+
+Nombre
+
+Correo
+
+Nombre del negocio
+
+Opciones:
+
+Editar perfil
+
+Configuración
+
+Preferencias de subida
+
+Almacenamiento local
+
+Cerrar sesión
+
+---
+
+# 33. PREFERENCIAS DE SUBIDA
+
+Dentro de Cuenta:
+
+Subir automáticamente
+
+ON/OFF
+
+Subir mediante:
+
+Solo Wi-Fi
+
+Wi-Fi y datos móviles
+
+Conservar videos locales:
+
+Siempre
+
+1 día
+
+3 días
+
+7 días
+
+Mostrar:
+
+Espacio utilizado
+
+Ejemplo:
+
+Videos locales
+
+18.4 GB
+
+Botón:
+
+Liberar espacio
+
+Nunca eliminar videos PENDING_UPLOAD.
+
+---
+
+# 34. CONFIGURACIONES PREDETERMINADAS
+
+Una mejora importante:
+
+Permitir guardar configuración de evento como:
+
+PRESET
+
+Ejemplo:
+
+"Bodas"
+
+Resolución:
+
+1080p
+
+Duración:
+
+8 s
+
+Efecto:
+
+Slow + Reverse
+
+Contador:
+
+3 s
+
+Marco:
+
+Wedding Gold
+
+El operador podrá reutilizarlo posteriormente.
+
+Diseñar los modelos para permitir esta funcionalidad.
+
+Puede quedar como funcionalidad posterior si complica demasiado el MVP.
+
+---
+
+# 35. FLUJO RÁPIDO
+
+La cantidad de pasos durante un evento debe ser mínima.
+
+Ideal:
+
+GRABAR
+
+↓
+
+3
+
+2
+
+1
+
+↓
+
+GRABANDO
+
+↓
+
+PROCESANDO
+
+↓
+
+VIDEO LISTO
+
+↓
+
+QR
+
+↓
+
+GRABAR OTRO
+
+El operador no debe regresar al dashboard entre cada persona.
+
+---
+
+# 36. ESTADO DEL EVENTO
+
+Mientras un evento esté activo:
+
+si el operador abre la aplicación nuevamente
+
+debe detectar:
+
+EVENTO ACTIVO
+
+y mostrar un acceso grande:
+
+CONTINUAR EVENTO
+
+No obligarlo a buscarlo nuevamente.
+
+Ejemplo Home:
+
+Evento activo
+
+Boda Ana & Carlos
+
+35 videos
+
+[ CONTINUAR EVENTO ]
+
+Debajo:
+
+* Nuevo evento
+
+---
+
+# 37. PREVENCIÓN DE ERRORES
+
+Antes de comenzar un evento verificar:
+
+Espacio libre
+
+Permiso de cámara
+
+Permiso de almacenamiento cuando corresponda
+
+Batería
+
+Cámara disponible
+
+Si el dispositivo tiene muy poco almacenamiento mostrar:
+
+Espacio insuficiente
+
+Pero no bloquear con advertencias innecesarias.
+
+---
+
+# 38. ORIENTACIÓN
+
+Diseñar prioritariamente para:
+
+portrait
+
+pero la pantalla de cámara debe poder considerar:
+
+portrait
+
+landscape
+
+según configuración del operador.
+
+No hacer que los overlays se rompan al cambiar orientación.
+
+Los overlays deben utilizar un sistema de coordenadas normalizado.
+
+Ejemplo:
+
+x = 0.0 → 1.0
+
+y = 0.0 → 1.0
+
+De esta forma funcionan independientemente de resolución.
+
+---
+
+# 39. MODELOS DE CONFIGURACIÓN
+
+Crear algo similar a:
+
+EventVideoSettings
+
+con:
+
+resolution
+
+camera_id
+
+bitrate_mode
+
+bitrate
+
+duration
+
+countdown
+
+orientation
+
+VideoEffectConfiguration
+
+OverlayConfiguration
+
+No guardar configuraciones complejas únicamente como variables dispersas.
+
+---
+
+# 40. MODELO EVENTO
+
+Event:
+
+id
+
+uuid
+
+operator
+
+name
+
+event_type
+
+cover_image
+
+date
+
+status
+
+video_settings
+
+created_at
+
+started_at
+
+finished_at
+
+public_token
+
+---
+
+# 41. MODELO VIDEO
+
+Video:
+
+uuid
+
+event_uuid
+
+local_original_path
+
+local_processed_path
+
+server_id
+
+public_token
+
+status
+
+processing_status
+
+upload_status
+
+duration
+
+size
+
+thumbnail
+
+created_at
+
+uploaded_at
+
+---
+
+# 42. ESTADOS DEL VIDEO
+
+Utilizar estados claros.
+
+CaptureState:
+
+IDLE
+
+COUNTDOWN
+
+RECORDING
+
+SAVING
+
+ProcessingState:
+
+WAITING
+
+PROCESSING
+
+COMPLETED
+
+FAILED
+
+UploadState:
+
+LOCAL_ONLY
+
+PENDING
+
+UPLOADING
+
+UPLOADED
+
+FAILED
+
+PublicState:
+
+NOT_AVAILABLE
+
+AVAILABLE
+
+EXPIRED
+
+No utilizar un único boolean:
+
+uploaded = true/false
+
+para representar toda la lógica.
+
+---
+
+# 43. NAVEGACIÓN PROPUESTA
+
+Navigation Graph aproximado:
+
+Auth
+
+├── Login
+
+├── Register
+
+└── ForgotPassword
+
+Main
+
+├── Home
+
+│    ├── CreateEvent
+
+│    ├── EventSetup
+
+│    │    ├── VideoSettings
+
+│    │    ├── Effects
+
+│    │    ├── Countdown
+
+│    │    └── OverlayEditor
+
+│    └── EventDashboard
+
+│         ├── Camera
+
+│         ├── EventGallery
+
+│         ├── VideoDetails
+
+│         └── EventQR
+
+├── Subscription
+
+└── Account
+
+```
+ ├── Profile
+
+ ├── UploadPreferences
+
+ └── LocalStorage
+```
+
+---
+
+# 44. UX PRIORITARIA
+
+La aplicación será utilizada en ambientes como:
+
+bodas
+
+salones oscuros
+
+fiestas
+
+eventos con ruido
+
+operadores con poco tiempo
+
+Por lo tanto:
+
+botones grandes
+
+contraste alto
+
+acciones claras
+
+pocos textos
+
+no esconder funciones importantes
+
+feedback visual inmediato
+
+animaciones rápidas
+
+No hacer una interfaz demasiado delicada donde sea difícil tocar botones.
+
+---
+
+# 45. DISEÑO VISUAL
+
+Utilizar:
+
+bordes redondeados
+
+tarjetas amplias
+
+tipografía limpia
+
+iconografía sencilla
+
+espaciado generoso
+
+barra inferior minimalista
+
+Evitar:
+
+gradientes exagerados
+
+efectos gamer
+
+neón innecesario
+
+pantallas llenas de controles
+
+El diseño debe sentirse como un producto SaaS moderno.
+
+---
+
+# 46. DARK MODE
+
+Soportar:
+
+Light
+
+Dark
+
+System
+
+La cámara debería preferentemente utilizar interfaz oscura independientemente del tema porque mejora la experiencia visual.
+
+---
+
+# 47. ANIMACIONES
+
+Agregar animaciones sutiles:
+
+creación de eventos
+
+contador
+
+inicio de grabación
+
+procesamiento
+
+video completado
+
+aparición de QR
+
+No crear animaciones largas que retrasen al operador.
+
+---
+
+# 48. CASO DE USO COMPLETO
+
+Quiero que este flujo funcione:
+
+El operador abre aplicación.
+
+↓
+
+Inicia sesión.
+
+↓
+
+Home.
+
+↓
+
+Pulsa:
+
+INICIAR EVENTO
+
+↓
+
+Aparece modal.
+
+↓
+
+Escribe:
+
+Boda Andrea & Luis
+
+↓
+
+Selecciona:
+
+Boda
+
+↓
+
+Selecciona portada.
+
+↓
+
+Pulsa:
+
+Continuar
+
+↓
+
+Configura:
+
+1080p
+
+Cámara principal
+
+Bitrate automático
+
+8 segundos
+
+Slow Motion + Reverse
+
+Contador 3 segundos
+
+↓
+
+Agrega marco:
+
+Wedding Gold
+
+↓
+
+Agrega texto:
+
+Andrea & Luis
+
+↓
+
+Pulsa:
+
+GUARDAR Y COMENZAR
+
+↓
+
+Se abre evento.
+
+↓
+
+Pulsa:
+
+GRABAR VIDEO
+
+↓
+
+Cámara.
+
+↓
+
+Pulsa botón.
+
+↓
+
+3
+
+2
+
+1
+
+↓
+
+Graba automáticamente 8 segundos.
+
+↓
+
+Guarda original.
+
+↓
+
+Procesa slow motion + reverse.
+
+↓
+
+Agrega marco y texto.
+
+↓
+
+Guarda final.
+
+↓
+
+Añade upload a WorkManager.
+
+↓
+
+Aparece:
+
+VIDEO LISTO
+
+↓
+
+Muestra QR.
+
+↓
+
+Cliente escanea QR.
+
+↓
+
+Si ya se subió:
+
+ve y descarga video.
+
+Si todavía no:
+
+ve:
+
+"Tu video todavía se está preparando."
+
+↓
+
+Operador pulsa:
+
+GRABAR OTRO
+
+↓
+
+Se repite el proceso.
+
+Mientras tanto:
+
+WorkManager continúa subiendo videos anteriores.
+
+Este debe ser el flujo principal alrededor del cual se diseñe toda la aplicación.
+
+---
+
+# 49. IMPORTANTE: SEPARAR CAPTURA, PROCESAMIENTO Y SUBIDA
+
+Nunca implementar:
+
+grabar
+
+↓
+
+esperar upload
+
+↓
+
+poder grabar nuevamente
+
+Eso sería incorrecto.
+
+Las operaciones deben funcionar como pipeline:
+
+CAPTURE
+
+↓
+
+PROCESSING
+
+↓
+
+UPLOAD
+
+Pero deben poder solaparse.
+
+Ejemplo:
+
+Video #15
+
+UPLOADING
+
+Video #16
+
+PROCESSING
+
+Video #17
+
+RECORDING
+
+Esto es especialmente importante en eventos.
+
+Diseñar el sistema para permitir concurrencia controlada.
+
+No saturar CPU/GPU/disco.
+
+Por ejemplo:
+
+1 procesamiento pesado simultáneo
+
+y
+
+1-2 uploads simultáneos
+
+según recursos.
+
+---
+
+# 50. PRIORIDAD MÁXIMA
+
+La prioridad absoluta del sistema durante un evento es:
+
+NO PERDER VIDEOS.
+
+Después:
+
+PODER SEGUIR GRABANDO.
+
+Después:
+
+PROCESAR.
+
+Después:
+
+SUBIR.
+
+Por tanto:
+
+Grabación > persistencia local > procesamiento > upload.
+
+Si Internet falla:
+
+seguir grabando.
+
+Si servidor falla:
+
+seguir grabando.
+
+Si upload falla:
+
+seguir grabando.
+
+Si procesamiento tarda:
+
+conservar original.
+
+Nunca perder un video por intentar hacerlo disponible demasiado rápido.
+
+---
+
+# 51. IMPLEMENTACIÓN POR FASES DE UI
+
+FASE UI 1
+
+Login
+
+Registro
+
+Bottom Navigation
+
+Home
+
+Subscription
+
+Account
+
+FASE UI 2
+
+Crear evento
+
+Tipos
+
+Portada
+
+Event Settings
+
+FASE UI 3
+
+Resolución
+
+Cámara
+
+Bitrate
+
+Duración
+
+Contador
+
+FASE UI 4
+
+Efectos
+
+Overlay editor
+
+Marcos
+
+Texto
+
+Stickers
+
+FASE UI 5
+
+Event Dashboard
+
+Galería
+
+Estados de videos
+
+FASE UI 6
+
+Camera
+
+Countdown
+
+Recording
+
+FASE UI 7
+
+Processing
+
+QR
+
+Video ready
+
+FASE UI 8
+
+Upload progress
+
+Offline states
+
+Recovery
+
+No avanzar dejando pantallas desconectadas entre sí.
+
+---
+
+# 52. PRIMER TRABAJO A REALIZAR
+
+Antes de programar estas pantallas:
+
+1. crea un mapa completo de navegación
+
+2. crea wireframes de texto para todas las pantallas
+
+3. define componentes Compose reutilizables
+
+4. define estados de cada pantalla
+
+5. define eventos de usuario
+
+6. define ViewModels
+
+7. define qué información viene de Room
+
+8. define qué información viene de backend
+
+9. define navegación offline
+
+10. identifica qué pantallas deben funcionar sin Internet
+
+Después comienza a implementar siguiendo las fases anteriores.
+
+No crees únicamente mocks visuales.
+
+Cada pantalla debe diseñarse pensando en cómo se conectará realmente a la arquitectura y al flujo de datos del sistema.

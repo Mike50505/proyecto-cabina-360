@@ -1,0 +1,12 @@
+{% extends "public_gallery/base.html" %}
+{% block title %}{{ event.name }}{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="eyebrow">{{ event.event_type.name }}</div>
+  <h1>{{ event.name }}</h1>
+  <p>{{ event.event_date|date:"j \d\e F \d\e Y" }}</p>
+  {% if event.description %}<p>{{ event.description }}</p>{% endif %}
+  <div class="status">La galería estará disponible aquí</div>
+</section>
+{% endblock %}
+

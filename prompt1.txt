@@ -1,0 +1,1538 @@
+Quiero que actúes como arquitecto de software senior, desarrollador Android senior, desarrollador backend senior y DevOps engineer.
+
+Quiero que diseñes y desarrolles desde cero un SaaS completo para operadores de cabinas de video 360 utilizadas en bodas, fiestas, graduaciones y otros eventos.
+
+No quiero únicamente ejemplos ni pseudocódigo. Quiero una aplicación funcional, organizada, mantenible, segura y preparada para producción futura.
+
+Debes trabajar de manera incremental, documentar lo que haces y mantener siempre el proyecto ejecutable.
+
+# 1. VISIÓN GENERAL DEL PRODUCTO
+
+El producto será un SaaS para operadores de cabinas de video 360.
+
+Los usuarios que pagan la suscripción son los operadores de las cabinas.
+
+Los invitados/clientes finales de los eventos NO deberán instalar ninguna aplicación.
+
+El flujo general debe ser:
+
+OPERADOR
+↓
+Inicia sesión en aplicación Android
+↓
+Crea un evento
+↓
+La aplicación genera información y QR del evento
+↓
+Graba videos durante el evento
+↓
+Los videos SIEMPRE se guardan primero localmente en el dispositivo Android
+↓
+Se añaden a una cola de sincronización
+↓
+Cuando exista conexión a Internet se suben automáticamente al servidor
+↓
+El backend almacena y organiza los videos
+↓
+Los invitados escanean el QR
+↓
+Abren una página web
+↓
+Visualizan los videos disponibles
+↓
+Descargan sus videos
+↓
+Después de determinado periodo los videos son eliminados automáticamente
+
+El sistema debe diseñarse desde el principio pensando en que los eventos pueden tener muy mala conexión a Internet.
+
+La grabación de videos NUNCA debe depender de tener Internet.
+
+# 2. TECNOLOGÍAS PRINCIPALES
+
+Quiero utilizar estas tecnologías salvo que exista una razón técnica importante para cambiar alguna:
+
+ANDROID:
+
+* Kotlin
+* Jetpack Compose
+* CameraX cuando sea posible
+* Camera2 cuando CameraX no sea suficiente
+* Android Architecture Components
+* MVVM o Clean Architecture
+* Repository Pattern
+* Room Database
+* WorkManager
+* Retrofit o Ktor Client
+* Kotlin Coroutines
+* Flow / StateFlow
+* DataStore
+* Material 3
+
+BACKEND:
+
+* Python
+* Django
+* Django REST Framework
+* PostgreSQL
+* JWT Authentication
+* Gunicorn
+
+INFRAESTRUCTURA:
+
+* Debian Linux
+* Docker
+* Docker Compose
+* Caddy como reverse proxy
+* PostgreSQL
+* almacenamiento persistente mediante Docker volumes o bind mounts
+
+WEB PARA LOS INVITADOS:
+Puedes elegir entre:
+
+* Django templates
+  o
+* una pequeña aplicación web moderna separada
+
+Prefiero evitar complejidad innecesaria para el MVP.
+
+La web debe ser:
+
+* responsive
+* mobile first
+* rápida
+* minimalista
+* moderna
+* inspirada visualmente en productos Apple / Google
+* muy sencilla para invitados sin conocimientos técnicos
+
+# 3. ALMACENAMIENTO DE VIDEOS
+
+ESTA PARTE ES MUY IMPORTANTE.
+
+Durante todo el periodo de desarrollo los videos deben almacenarse físicamente en MI PROPIO SERVIDOR.
+
+NO implementar Cloudflare R2 como almacenamiento activo todavía.
+
+Por ahora:
+
+Android
+↓
+API
+↓
+Servidor Debian
+↓
+almacenamiento local del servidor
+
+Ejemplo:
+
+/srv/360saas/media/
+
+La estructura puede ser similar a:
+
+/srv/360saas/media/
+operators/
+{operator_uuid}/
+events/
+{event_uuid}/
+videos/
+thumbnails/
+
+Pero quiero que el sistema se diseñe utilizando una capa de abstracción de almacenamiento.
+
+Crear algo conceptualmente como:
+
+StorageService
+
+con operaciones similares a:
+
+save()
+delete()
+exists()
+get_download_url()
+get_stream_url()
+create_upload_session()
+
+Y proveedores como:
+
+LocalStorageProvider
+
+y posteriormente:
+
+CloudflareR2StorageProvider
+
+Inicialmente solamente debe estar activo:
+
+STORAGE_BACKEND=local
+
+Pero quiero que en el futuro pueda cambiarse por:
+
+STORAGE_BACKEND=r2
+
+sin modificar la lógica de negocio del sistema.
+
+NO quiero tener que rehacer el backend cuando migremos a Cloudflare R2.
+
+# 4. TAMAÑO DE LOS VIDEOS
+
+Considera videos de aproximadamente:
+
+70 MB promedio
+
+Cada evento puede generar aproximadamente:
+
+30-40 videos
+
+Por lo tanto cada evento puede generar aproximadamente:
+
+2.1 GB - 2.8 GB
+
+Un operador puede realizar entre:
+
+0 y 3 eventos por semana.
+
+El sistema debe estar preparado para manejar archivos grandes.
+
+No debes cargar archivos completos en memoria RAM durante una subida.
+
+Utilizar streaming/chunks cuando corresponda.
+
+# 5. SUBIDA RESISTENTE A FALLAS
+
+La aplicación Android debe asumir que Internet será malo o inexistente durante muchos eventos.
+
+El flujo obligatorio es:
+
+Grabar video
+↓
+guardar inmediatamente archivo local
+↓
+registrar video en base de datos Room
+↓
+estado = PENDING_UPLOAD
+↓
+WorkManager detecta conectividad
+↓
+intenta subir
+↓
+si falla:
+mantener archivo
+incrementar intentos
+aplicar retry/backoff
+↓
+si funciona:
+verificar que el servidor recibió correctamente el archivo
+↓
+estado = UPLOADED
+
+Estados recomendados:
+
+LOCAL_ONLY
+PENDING_UPLOAD
+UPLOADING
+UPLOADED
+FAILED
+DELETING
+DELETED
+
+Nunca eliminar automáticamente el archivo local inmediatamente después de un fallo.
+
+La aplicación debe sobrevivir a:
+
+* reinicio del teléfono
+* cierre forzado de la aplicación
+* cambio entre Wi-Fi y datos móviles
+* pérdida de conexión
+* cierre de pantalla
+* interrupciones parciales de subida
+
+Usar WorkManager correctamente.
+
+No crear servicios permanentes innecesarios.
+
+# 6. SUBIDA DE ARCHIVOS
+
+Durante desarrollo los videos se subirán directamente a mi backend/servidor.
+
+Diseñar un sistema robusto.
+
+Preferentemente implementar:
+
+UploadSession
+
+que permita identificar una subida.
+
+Conceptualmente:
+
+POST /api/uploads/
+
+respuesta:
+
+{
+"upload_id": "...",
+"video_id": "...",
+"status": "created"
+}
+
+Después realizar la transferencia.
+
+Si es razonable implementar chunks:
+
+PUT /api/uploads/{upload_id}/chunks/{number}
+
+y posteriormente:
+
+POST /api/uploads/{upload_id}/complete
+
+El diseño debe evitar corrupción de archivos.
+
+Después de subir un video verificar:
+
+* tamaño
+* existencia
+* estado
+* opcionalmente hash SHA-256
+
+Quiero que la implementación esté preparada para reemplazar este flujo posteriormente por presigned URLs de Cloudflare R2.
+
+# 7. AUTENTICACIÓN
+
+Los operadores deberán iniciar sesión.
+
+Implementar autenticación segura utilizando JWT.
+
+Necesito:
+
+POST /api/auth/login/
+POST /api/auth/refresh/
+POST /api/auth/logout/
+GET /api/auth/me/
+
+Utilizar:
+
+* access token de duración relativamente corta
+* refresh token
+* almacenamiento seguro en Android
+
+Nunca guardar contraseñas directamente.
+
+Utilizar los mecanismos de hashing propios de Django.
+
+# 8. MODELO DE USUARIOS
+
+Separar claramente:
+
+User
+
+OperatorProfile
+
+Un usuario podrá pertenecer inicialmente a un único operador/negocio.
+
+Pero diseñar la estructura pensando en que en el futuro un operador pueda tener varios empleados/dispositivos.
+
+Ejemplo:
+
+Operator
+|
+├── Owner
+├── Employee 1
+├── Employee 2
+└── Devices
+
+No es necesario implementar permisos empresariales extremadamente complejos en la primera versión, pero no diseñar algo que impida hacerlo después.
+
+# 9. SUSCRIPCIONES
+
+El backend debe validar si un operador tiene una suscripción activa.
+
+Crear modelos:
+
+Plan
+Subscription
+
+Posibles estados:
+
+TRIAL
+ACTIVE
+PAST_DUE
+CANCELLED
+EXPIRED
+
+El backend, NO la aplicación Android, es la fuente de verdad del estado de la suscripción.
+
+Cuando la aplicación inicia debe consultar algo similar a:
+
+GET /api/subscription/
+
+Respuesta:
+
+{
+"status": "ACTIVE",
+"plan": "...",
+"expires_at": "...",
+"features": {...}
+}
+
+Las operaciones restringidas deben validarse también en el backend.
+
+Nunca confiar únicamente en la interfaz Android.
+
+Durante desarrollo quiero poder asignar suscripciones manualmente desde Django Admin.
+
+NO integrar todavía obligatoriamente Stripe, Mercado Pago u otro procesador.
+
+Crear una arquitectura que permita añadir posteriormente un PaymentProvider.
+
+Ejemplo:
+
+PaymentProvider
+StripeProvider
+MercadoPagoProvider
+
+pero por ahora puede existir:
+
+ManualSubscriptionProvider
+
+# 10. PLANES
+
+Preparar el sistema para planes configurables.
+
+Un Plan puede tener cosas como:
+
+name
+price
+max_events_per_month
+retention_days
+max_storage
+max_devices
+branding_enabled
+is_active
+
+No hardcodear todas estas reglas.
+
+Deben poder configurarse desde backend/Django Admin.
+
+# 11. EVENTOS
+
+Un operador podrá crear eventos.
+
+Modelo Event aproximado:
+
+id
+uuid
+operator
+name
+description
+event_date
+created_at
+updated_at
+status
+public_token
+retention_until
+video_count
+storage_used
+
+Estados:
+
+DRAFT
+ACTIVE
+FINISHED
+EXPIRED
+DELETED
+
+API aproximada:
+
+GET /api/events/
+POST /api/events/
+GET /api/events/{id}/
+PATCH /api/events/{id}/
+DELETE /api/events/{id}/
+
+La aplicación debe mostrar:
+
+* eventos próximos
+* eventos activos
+* eventos pasados
+* número de videos
+* videos pendientes de subir
+* almacenamiento utilizado
+
+# 12. QR DEL EVENTO
+
+Cuando se crea un evento debe generarse un enlace público difícil de adivinar.
+
+Por ejemplo:
+
+https://videos.midominio.com/e/{PUBLIC_TOKEN}
+
+NO usar IDs incrementales públicos como:
+
+/event/15
+
+Utilizar UUID, token criptográficamente seguro o ambos.
+
+La aplicación Android debe poder mostrar un QR que represente esta URL.
+
+El operador podrá:
+
+* mostrar QR
+* guardarlo
+* compartirlo
+
+# 13. PÁGINA WEB PARA INVITADOS
+
+Los invitados NO necesitan:
+
+* crear cuenta
+* iniciar sesión
+* instalar aplicación
+
+Simplemente:
+
+escanean QR
+↓
+abren navegador
+↓
+entran al evento
+
+La página deberá mostrar:
+
+Nombre del evento
+
+Fecha
+
+Galería de videos
+
+Miniatura
+
+Duración
+
+Botón reproducir
+
+Botón descargar
+
+Diseño mobile-first.
+
+La experiencia debe ser extremadamente sencilla.
+
+# 14. SEGURIDAD DE EVENTOS
+
+No quiero que una persona pueda simplemente enumerar eventos.
+
+Usar tokens públicos suficientemente largos y aleatorios.
+
+Preparar opcionalmente soporte futuro para:
+
+PIN del evento
+
+pero inicialmente el evento puede abrirse simplemente con el token del QR.
+
+Nunca exponer rutas físicas del servidor.
+
+# 15. VIDEOS
+
+Modelo Video aproximado:
+
+id
+uuid
+event
+operator
+original_filename
+storage_key
+local_path
+size_bytes
+mime_type
+duration
+status
+upload_status
+checksum
+created_at
+uploaded_at
+expires_at
+thumbnail_path
+
+API aproximada:
+
+GET /api/events/{id}/videos/
+POST /api/events/{id}/videos/
+GET /api/videos/{id}/
+DELETE /api/videos/{id}/
+
+# 16. MINIATURAS
+
+Cuando un video termine de subir correctamente, generar una miniatura automáticamente.
+
+Puedes utilizar FFmpeg en el servidor.
+
+No bloquear una petición HTTP durante mucho tiempo para esta operación.
+
+Utilizar una tarea en segundo plano si es necesario.
+
+La miniatura debe guardarse asociada al video.
+
+# 17. PROCESAMIENTO EN SEGUNDO PLANO
+
+Si se necesitan tareas backend asíncronas, utilizar una solución mantenible.
+
+Preferencia:
+
+Celery
+Redis
+
+Tareas posibles:
+
+generate_video_thumbnail
+delete_expired_events
+delete_expired_videos
+verify_uploaded_video
+cleanup_failed_uploads
+
+No utilizar Celery innecesariamente para todo.
+
+# 18. RETENCIÓN Y BORRADO AUTOMÁTICO
+
+Los videos NO se conservarán indefinidamente.
+
+Cada plan podrá definir:
+
+retention_days
+
+Por ejemplo:
+
+7
+30
+90
+
+Cuando un evento expire:
+
+Event.retention_until < now()
+
+el sistema debe eliminar físicamente los videos.
+
+Proceso:
+
+buscar eventos/videos expirados
+↓
+eliminar archivos mediante StorageService
+↓
+actualizar registros
+↓
+registrar operación
+
+No ejecutar simplemente:
+
+os.remove()
+
+directamente desde la lógica de negocio.
+
+Todo debe pasar por StorageService.
+
+Esto permitirá que posteriormente el mismo sistema elimine objetos de Cloudflare R2.
+
+# 19. PROTECCIÓN CONTRA BORRADOS ACCIDENTALES
+
+Implementar estados antes de eliminar.
+
+Ejemplo:
+
+ACTIVE
+EXPIRED
+PENDING_DELETE
+DELETED
+
+No borrar archivos automáticamente por errores temporales.
+
+Registrar logs.
+
+# 20. DESCARGA DE VIDEOS
+
+Durante desarrollo los videos estarán en el servidor local.
+
+No quiero que Django cargue los 70 MB completos en RAM.
+
+Implementar streaming eficiente.
+
+Cuando sea posible, dejar que Caddy sirva el archivo después de que Django haya autorizado la solicitud.
+
+Investiga y aplica un diseño seguro como:
+
+* internal redirects
+* rutas protegidas
+* URLs temporales
+  o equivalente
+
+La lógica debe quedar preparada para que en Cloudflare R2 posteriormente se generen URLs firmadas.
+
+# 21. REPRODUCCIÓN DE VIDEO
+
+La página web debe permitir reproducir videos sin descargar obligatoriamente el archivo completo.
+
+Soportar HTTP Range Requests cuando sea necesario.
+
+Esto es importante para reproducción/seek de videos MP4.
+
+# 22. REGISTRO DE DESCARGAS
+
+Crear opcionalmente:
+
+DownloadLog
+
+con:
+
+video
+event
+timestamp
+ip_hash o información no invasiva
+user_agent opcional
+
+No quiero recolectar datos personales innecesarios.
+
+El objetivo es permitir estadísticas futuras como:
+
+descargas por evento
+video más descargado
+cantidad de reproducciones
+
+# 23. APLICACIÓN ANDROID
+
+La interfaz debe ser moderna, limpia y sencilla.
+
+Inspiración:
+
+* Apple
+* Google
+* Linear
+* Notion
+
+Evitar interfaces sobrecargadas.
+
+Pantallas iniciales:
+
+Splash
+Login
+Dashboard
+Events
+EventDetail
+CreateEvent
+Recording
+UploadQueue
+Subscription
+Settings
+
+# 24. DASHBOARD
+
+Mostrar al operador:
+
+Hola, {nombre}
+
+Plan actual
+
+Estado de suscripción
+
+Eventos del mes
+
+Eventos próximos
+
+Videos grabados
+
+Videos pendientes de subir
+
+Almacenamiento utilizado
+
+Últimos eventos
+
+# 25. PANTALLA DEL EVENTO
+
+Mostrar:
+
+Nombre
+Fecha
+Estado
+Cantidad de videos
+Videos pendientes
+Videos subidos
+Almacenamiento
+URL pública
+QR
+
+Acciones:
+
+Grabar
+Ver videos
+Mostrar QR
+Compartir QR
+Finalizar evento
+
+# 26. GRABACIÓN
+
+Crear una implementación robusta de grabación de video.
+
+Durante MVP:
+
+* seleccionar cámara adecuada
+* preview
+* comenzar grabación
+* detener grabación
+* guardar archivo localmente
+* registrar video en Room
+* relacionarlo con Event
+* ponerlo en cola
+
+Antes de grabar verificar espacio disponible.
+
+No perder una grabación si falla Internet.
+
+No hacer depender CameraX del backend.
+
+# 27. ALMACENAMIENTO LOCAL ANDROID
+
+Cada evento debe tener su propia estructura.
+
+Por ejemplo:
+
+files/
+events/{event_uuid}/videos/
+
+o utilizar almacenamiento privado de la aplicación correctamente.
+
+Mantener metadata en Room.
+
+Nunca depender únicamente del nombre del archivo para conocer su estado.
+
+# 28. ROOM
+
+Crear modelos locales equivalentes cuando sea necesario:
+
+LocalEvent
+LocalVideo
+UploadTask
+
+LocalVideo puede tener:
+
+id
+server_id
+event_id
+file_path
+file_size
+created_at
+upload_status
+progress
+retry_count
+last_error
+uploaded_at
+
+# 29. SINCRONIZACIÓN
+
+Crear un SyncRepository.
+
+La UI no debe hablar directamente con WorkManager ni Retrofit.
+
+Arquitectura aproximada:
+
+UI
+↓
+ViewModel
+↓
+UseCase
+↓
+Repository
+↓
+RemoteDataSource / LocalDataSource
+
+# 30. PROGRESO DE SUBIDA
+
+Mostrar al operador:
+
+video.mp4
+
+Subiendo 46%
+
+o:
+
+Esperando Internet
+
+o:
+
+Error - reintentando
+
+o:
+
+Subido
+
+WorkManager debe publicar cambios que puedan observarse desde la UI.
+
+# 31. PRIORIDAD A WI-FI
+
+Crear configuración:
+
+Subir videos:
+[ ] Solo Wi-Fi
+[ ] Wi-Fi y datos móviles
+
+Por defecto puedes dejar:
+
+solo Wi-Fi
+
+pero permitir que el usuario lo cambie.
+
+# 32. BORRADO LOCAL EN ANDROID
+
+Después de subir correctamente un video NO eliminar inmediatamente de manera obligatoria.
+
+Crear una preferencia:
+
+Conservar videos locales durante:
+
+* hasta borrado manual
+* 1 día
+* 3 días
+* 7 días
+
+Nunca borrar un archivo que no esté confirmado como UPLOADED.
+
+# 33. API
+
+Toda la API debe estar versionada:
+
+/api/v1/
+
+Ejemplo:
+
+/api/v1/auth/
+/api/v1/events/
+/api/v1/videos/
+/api/v1/uploads/
+/api/v1/subscription/
+
+Preparar para futuras versiones.
+
+# 34. RESPUESTAS DE ERROR
+
+Crear formato consistente:
+
+{
+"error": {
+"code": "SUBSCRIPTION_EXPIRED",
+"message": "Your subscription has expired.",
+"details": {}
+}
+}
+
+La aplicación Android debe poder mapear códigos a mensajes amigables.
+
+# 35. DJANGO ADMIN
+
+Configurar Django Admin correctamente.
+
+Necesito administrar:
+
+Users
+Operators
+Plans
+Subscriptions
+Events
+Videos
+Uploads
+
+Poder:
+
+activar/desactivar operador
+cambiar plan
+extender suscripción
+modificar retención
+ver consumo
+ver eventos
+ver videos
+
+# 36. MULTI-TENANCY
+
+Este sistema es SaaS.
+
+Un operador NUNCA debe poder acceder a:
+
+eventos
+videos
+estadísticas
+archivos
+
+de otro operador.
+
+Todas las queries privadas deben filtrarse por operator.
+
+Agregar tests específicos contra IDOR.
+
+Ejemplo:
+
+Operator A pide:
+
+/api/events/{event_operator_B}
+
+debe recibir:
+
+404 o 403
+
+y jamás información del evento.
+
+# 37. SEGURIDAD
+
+Aplicar buenas prácticas:
+
+HTTPS
+JWT
+CORS restringido
+CSRF donde corresponda
+rate limiting
+validación MIME
+validación tamaños
+nombres de archivo sanitizados
+UUID
+tokens seguros
+no confiar en datos enviados por Android
+protección IDOR
+logs
+
+Nunca confiar en:
+
+operator_id
+
+enviado por cliente.
+
+El operador se obtiene del usuario autenticado.
+
+# 38. DOCKER
+
+Crear:
+
+docker-compose.yml
+
+Servicios recomendados:
+
+backend
+postgres
+redis
+celery_worker
+celery_beat
+caddy
+
+si Redis/Celery son finalmente necesarios.
+
+Crear volumes persistentes:
+
+postgres_data
+media_data
+
+Nunca perder videos cuando se reconstruye:
+
+docker compose build
+
+o:
+
+docker compose up -d
+
+# 39. BACKUPS
+
+Preparar scripts/documentación para respaldar:
+
+PostgreSQL
+media
+
+No necesito un sistema empresarial todavía, pero quiero poder realizar:
+
+backup_db.sh
+backup_media.sh
+
+# 40. VARIABLES DE ENTORNO
+
+Usar .env.
+
+Ejemplo:
+
+DJANGO_SECRET_KEY=
+DJANGO_DEBUG=
+DJANGO_ALLOWED_HOSTS=
+DATABASE_URL=
+JWT_SECRET=
+STORAGE_BACKEND=local
+LOCAL_STORAGE_ROOT=/app/media
+PUBLIC_BASE_URL=
+EVENT_BASE_URL=
+VIDEO_RETENTION_DEFAULT_DAYS=
+
+No subir secretos a Git.
+
+Crear:
+
+.env.example
+
+# 41. CADDY
+
+Crear Caddyfile para algo similar a:
+
+api.midominio.com
+
+videos.midominio.com
+
+Durante desarrollo permitir configuración local.
+
+Caddy debe:
+
+* terminar HTTPS
+* redirigir al backend
+* servir recursos cuando corresponda
+* soportar archivos grandes
+* soportar Range Requests
+* aplicar configuración segura
+
+# 42. CLOUDFARE R2 FUTURO
+
+NO utilizarlo como almacenamiento activo ahora.
+
+Pero documentar exactamente cómo se implementaría posteriormente:
+
+CloudflareR2StorageProvider
+
+Debe ser posible cambiar:
+
+STORAGE_BACKEND=local
+
+a:
+
+STORAGE_BACKEND=r2
+
+y configurar:
+
+R2_ACCOUNT_ID
+R2_ACCESS_KEY_ID
+R2_SECRET_ACCESS_KEY
+R2_BUCKET_NAME
+R2_ENDPOINT
+
+En ese momento:
+
+Android
+↓
+solicita autorización
+↓
+backend valida
+↓
+backend genera presigned upload URL
+↓
+Android sube directamente a R2
+
+Los clientes también recibirían URLs firmadas o controladas.
+
+Todo el diseño actual debe facilitar esta migración.
+
+# 43. TESTS
+
+Crear tests backend para:
+
+auth
+permissions
+subscriptions
+events
+videos
+upload
+storage
+retention
+multi tenancy
+expired links
+
+Crear tests de StorageService usando LocalStorageProvider.
+
+Android:
+
+* ViewModel tests
+* Repository tests
+* Room tests
+* upload state tests
+
+# 44. LOGGING
+
+Utilizar logging estructurado.
+
+Registrar:
+
+login failures
+upload failures
+video processed
+video deleted
+subscription changes
+unexpected exceptions
+
+No registrar:
+
+* contraseñas
+* tokens
+* secretos
+
+# 45. DOCUMENTACIÓN
+
+Crear README.md completo.
+
+Debe explicar:
+
+arquitectura
+requisitos
+instalación
+Docker
+variables
+migraciones
+superusuario
+ejecutar backend
+ejecutar Android
+crear operador
+crear suscripción
+crear evento
+probar subida
+ubicación de videos
+backups
+tests
+
+Agregar:
+
+docs/architecture.md
+
+docs/storage.md
+
+docs/android-sync.md
+
+docs/api.md
+
+docs/deployment.md
+
+docs/cloudflare-r2-migration.md
+
+# 46. ESTRUCTURA DE REPOSITORIO
+
+Preferentemente un monorepo:
+
+360-saas/
+│
+├── backend/
+│   ├── config/
+│   ├── apps/
+│   │   ├── accounts/
+│   │   ├── operators/
+│   │   ├── subscriptions/
+│   │   ├── events/
+│   │   ├── videos/
+│   │   └── storage/
+│   ├── requirements/
+│   └── manage.py
+│
+├── android/
+│
+├── web/
+│
+├── infrastructure/
+│   ├── docker/
+│   ├── caddy/
+│   └── scripts/
+│
+├── docs/
+│
+├── docker-compose.yml
+├── .env.example
+└── README.md
+
+Puedes modificar esta estructura si tienes una arquitectura mejor, pero explica el motivo.
+
+# 47. CALIDAD DEL CÓDIGO
+
+No crear un proyecto desordenado.
+
+Evitar:
+
+* archivos gigantes
+* ViewModels gigantes
+* serializers gigantes
+* lógica de negocio dentro de views
+* lógica de storage dispersa
+* valores hardcodeados
+* duplicación
+
+Aplicar:
+SOLID cuando sea útil
+separation of concerns
+dependency inversion donde aporte valor
+type hints en Python
+Kotlin idiomático
+
+# 48. UX
+
+Quiero que el producto se sienta profesional.
+
+Principios:
+
+limpio
+espaciado generoso
+tipografía clara
+pocas acciones por pantalla
+botones grandes
+feedback inmediato
+estados de carga
+estados vacíos
+mensajes de error entendibles
+dark mode si es razonable
+
+No utilizar diseños visuales genéricos o anticuados.
+
+# 49. NO SOBREINGENIERÍA
+
+Aunque quiero una arquitectura sólida, este proyecto empieza como MVP.
+
+NO implementar:
+Kubernetes
+microservicios
+Kafka
+service mesh
+arquitecturas distribuidas
+infraestructura innecesariamente complicada
+
+Quiero un monolito modular Django.
+
+Android separado.
+
+PostgreSQL.
+
+Docker.
+
+Esto debe poder funcionar inicialmente en un solo servidor Debian.
+
+# 50. DESARROLLO POR FASES
+
+NO intentes crear 200 archivos incompletos al mismo tiempo.
+
+Trabaja por fases.
+
+FASE 1
+Arquitectura
+Docker
+Django
+PostgreSQL
+Caddy
+estructura
+
+FASE 2
+Usuarios
+Operators
+JWT
+Planes
+Suscripciones
+
+FASE 3
+Eventos
+QR
+portal público
+
+FASE 4
+Videos
+LocalStorageProvider
+uploads
+
+FASE 5
+Android base
+login
+dashboard
+eventos
+
+FASE 6
+Camera
+grabación local
+Room
+
+FASE 7
+WorkManager
+sync
+uploads resistentes
+
+FASE 8
+galería web
+streaming
+downloads
+
+FASE 9
+retención
+cleanup
+Celery si corresponde
+
+FASE 10
+tests
+seguridad
+documentación
+hardening
+
+Después de cada fase:
+
+1. ejecuta tests
+2. corrige errores
+3. verifica Docker
+4. documenta
+5. realiza un resumen
+6. continúa con la siguiente fase
+
+No avanzar dejando errores conocidos.
+
+# 51. DEFINITION OF DONE DEL MVP
+
+Consideraré el MVP funcional cuando pueda hacer este flujo completo:
+
+1. Instalo backend en Debian.
+
+2. Ejecuto:
+
+docker compose up -d
+
+3. Creo un operador.
+
+4. Le asigno una suscripción.
+
+5. Instalo la aplicación Android.
+
+6. Inicio sesión.
+
+7. Creo:
+
+"Boda Ana y Carlos"
+
+8. Se genera evento y QR.
+
+9. Desactivo Internet del Android.
+
+10. Grabo 3 videos.
+
+11. Los videos quedan almacenados localmente.
+
+12. La app muestra:
+
+3 pendientes de subir.
+
+13. Cierro la app.
+
+14. Reinicio el teléfono.
+
+15. Los videos siguen disponibles.
+
+16. Activo Internet.
+
+17. WorkManager comienza la subida.
+
+18. Los 3 videos llegan al servidor.
+
+19. Puedo encontrar físicamente los archivos en:
+
+/srv/360saas/media/...
+
+20. El backend registra cada video.
+
+21. Se generan miniaturas.
+
+22. Escaneo el QR desde otro teléfono.
+
+23. NO instalo ninguna aplicación.
+
+24. Se abre la página web del evento.
+
+25. Puedo ver los tres videos.
+
+26. Puedo reproducirlos.
+
+27. Puedo descargarlos.
+
+28. El operador puede ver que los videos están sincronizados.
+
+29. Otro operador no puede acceder mediante API a estos videos.
+
+30. Cuando se cumple retention_until, el sistema elimina correctamente los archivos mediante StorageService.
+
+Si todo esto funciona, el MVP básico está terminado.
+
+# 52. PREPARACIÓN PARA PRODUCCIÓN
+
+Después del MVP quiero que el sistema pueda evolucionar hacia:
+
+Cloudflare R2
+CDN
+pagos automáticos
+planes comerciales
+varios empleados por operador
+varias cabinas/dispositivos
+branding personalizado
+métricas
+notificaciones
+procesamiento de video
+plantillas
+música
+overlays
+efectos de cabina 360
+
+Pero NO implementar ahora funcionalidades que todavía no sean necesarias.
+
+Simplemente evita decisiones arquitectónicas que hagan difícil añadirlas posteriormente.
+
+# 53. REGLA FUNDAMENTAL
+
+Hay tres fuentes de verdad diferentes:
+
+ANDROID LOCAL:
+archivos todavía no sincronizados.
+
+BACKEND POSTGRESQL:
+metadata, usuarios, suscripciones, eventos, permisos.
+
+STORAGE:
+archivos finales de videos.
+
+Nunca mezclar las responsabilidades.
+
+# 54. FORMA EN QUE QUIERO QUE TRABAJES
+
+Antes de escribir código:
+
+1. analiza estos requisitos
+2. crea architecture.md
+3. propón estructura de carpetas
+4. define modelos principales
+5. define flujo Android ↔ API ↔ storage
+6. identifica riesgos técnicos
+7. crea plan de implementación
+
+Después comienza el desarrollo.
+
+Si encuentras una decisión menor que no está especificada, toma una decisión razonable y documenta el motivo.
+
+No me detengas constantemente por preguntas pequeñas.
+
+Pregunta únicamente cuando una decisión pueda cambiar de manera importante:
+
+* arquitectura
+* seguridad
+* costos
+* comportamiento principal del producto
+
+Cuando encuentres errores:
+
+* analiza la causa raíz
+* corrige el problema
+* ejecuta tests
+* no tapes errores con workarounds frágiles
+
+# 55. PRIMERA TAREA
+
+Comienza ahora haciendo únicamente:
+
+1. análisis técnico del proyecto
+2. arquitectura propuesta
+3. estructura del monorepo
+4. modelo preliminar de datos
+5. flujo completo de subida offline → servidor
+6. estrategia LocalStorageProvider → futuro CloudflareR2StorageProvider
+7. endpoints REST propuestos
+8. Docker Compose propuesto
+9. riesgos principales
+10. roadmap por fases
+
+Después de presentar esa arquitectura, comienza a crear el proyecto siguiendo las fases anteriores.
+
+La prioridad máxima es que el producto sea confiable durante eventos donde la conexión a Internet puede ser extremadamente mala.

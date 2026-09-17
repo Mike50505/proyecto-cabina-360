@@ -1,0 +1,11 @@
+{% extends "public_gallery/base.html" %}
+{% block title %}Tu video · {{ event.name }}{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="eyebrow">{{ event.name }}</div>
+  <h1>Tu video se está preparando</h1>
+  <p>Puedes conservar esta página y volver a intentarlo en unos minutos.</p>
+  <div class="status">Esperando el video</div>
+</section>
+{% endblock %}
+
