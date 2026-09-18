@@ -134,6 +134,11 @@ GET /v/{video_token}/stream/
 GET /v/{video_token}/download/
 ```
 
+`stream` acepta un único rango `bytes` y responde `206` con `Content-Range`; los
+rangos imposibles reciben `416`. Mientras el token esté reservado pero el video no
+haya llegado a `READY`, la página individual conserva el estado de preparación.
+Las rutas nunca exponen `storage_key` ni la ubicación física del archivo.
+
 Un token reservado sin archivo muestra un estado de preparación. Un evento vencido, desactivado o eliminado no entrega metadata privada ni rutas de almacenamiento.
 
 ## Respuestas relevantes

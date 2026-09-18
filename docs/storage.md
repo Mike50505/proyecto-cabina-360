@@ -39,7 +39,16 @@ La implementación actual guarda cada parte en `temporary/{upload_uuid}/parts/{n
 
 Django valida el token, el estado del video y la vigencia del evento. Luego entrega a Caddy una referencia interna que el cliente no puede fabricar como ruta física. Caddy sirve el archivo y conserva `Range`, `Content-Length`, `Content-Type` y `Content-Disposition` según reproducción o descarga.
 
-Esta integración se probará antes de considerarse terminada. El modo local de desarrollo puede usar una respuesta streaming por bloques como respaldo funcional, nunca una lectura completa en memoria.
+Con `CADDY_ACCEL_REDIRECT_ENABLED=1`, Django responde internamente con
+`X-Accel-Redirect` después de autorizar la solicitud. Caddy intercepta esa cabecera,
+reescribe la URI dentro de `/srv/media` y sirve el volumen `media_data` montado como
+solo lectura. La ruta pública siempre conserva el token; el cliente no recibe la clave
+de almacenamiento. El contenedor backend no publica su puerto al host.
+
+El modo local sin Caddy mantiene una respuesta streaming por bloques como respaldo
+funcional, nunca una lectura completa en memoria. La configuración de Caddy está
+implementada y cubierta en el límite Django; todavía debe validarse extremo a extremo
+al disponer de Docker Engine.
 
 ## Retención
 

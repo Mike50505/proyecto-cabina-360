@@ -1,5 +1,5 @@
 CONTINUIDAD DEL PROYECTO CABINA 360
-Fecha de corte: 17 de septiembre de 2026
+Fecha de corte: 18 de septiembre de 2026
 Directorio: /home/mike/proyecto_cabina360
 
 OBJETIVO
@@ -11,7 +11,8 @@ reanudable y entregar cada video mediante una página pública y un código QR.
 ESTADO GENERAL
 
 Fases implementadas en código: 0 a 7.
-Siguiente fase: 8, entrega pública.
+Fase actual: 8, entrega pública (implementada casi por completo en código y pendiente
+de validación integral con servicios y dispositivos).
 Fases restantes del roadmap: 8, 9 y 10.
 
 El roadmap detallado está en docs/roadmap.md.
@@ -97,6 +98,20 @@ FASE 7 - PROCESAMIENTO Y SINCRONIZACIÓN
 - Limpieza local configurable en 1, 3, 7 días o siempre.
 - La limpieza únicamente considera videos confirmados como UPLOADED.
 
+FASE 8 - ENTREGA PÚBLICA (INCREMENTO INICIAL)
+- Validación de metadata con ffprobe y miniaturas con ffmpeg mediante Celery.
+- Transiciones idempotentes UPLOADED -> PROCESSING -> READY.
+- Recuperación periódica de videos cuyo encolado o procesamiento fue interrumpido.
+- Miniaturas persistidas mediante StorageService.
+- Galería pública mobile-first y página individual del video.
+- Reproducción streaming con HTTP Range 206 y manejo de rangos inválidos 416.
+- Descarga sin exponer storage_key ni rutas físicas.
+- Delegación protegida a Caddy mediante X-Accel-Redirect y volumen de solo lectura.
+- Registro mínimo de vistas, reproducciones y descargas con IP anonimizada.
+- QR general del evento y QR individual local en Android.
+- Configuración de exportación de esquemas Room.
+- Corrección del contrato de tokens Android AVAILABLE/ASSIGNED.
+
 
 VERIFICACIONES REALIZADAS
 
@@ -104,6 +119,7 @@ Android:
 - 6 pruebas unitarias aprobadas.
 - testDebugUnitTest aprobado.
 - assembleDebug aprobado.
+- JDK 17 y Android SDK Platform 37 instalados y funcionando en esta máquina.
 - APK generado en:
   android/app/build/outputs/apk/debug/app-debug.apk
 
@@ -111,6 +127,15 @@ Backend:
 - Antes de Android se ejecutó la suite completa con 42 pruebas aprobadas.
 - Después se agregó y verificó por separado la prueba del comando seed_demo.
 - No se pudo ejecutar Docker Compose en este entorno porque Docker Engine no está instalado.
+- Después de integrar la entrega protegida con Caddy: 49 pruebas aprobadas.
+- `makemigrations --check --dry-run`: sin cambios pendientes.
+- `check --deploy` ejecutado; solo muestra las advertencias esperadas de HSTS, HTTPS
+  y cookies seguras al usar la configuración de pruebas.
+- Smoke test real de ffprobe/ffmpeg aprobado con MP4 y miniatura.
+- Pruebas automatizadas de token expirado o inexistente para stream, descarga y
+  miniatura aprobadas.
+- La frontera Django de X-Accel-Redirect está cubierta por pruebas. La validación real
+  de Caddy sigue pendiente porque Docker Engine y Caddy no están instalados.
 
 
 CUENTA DE DEMOSTRACIÓN
@@ -162,6 +187,12 @@ Android:
 - android/app/src/main/java/com/cabina360/operator/data/remote/CabinaApi.kt
 - android/app/src/main/java/com/cabina360/operator/ui/AppUi.kt
 - android/app/src/main/java/com/cabina360/operator/ui/CaptureUi.kt
+- android/app/src/main/java/com/cabina360/operator/ui/QrUi.kt
+
+Caddy y despliegue:
+- infrastructure/caddy/Caddyfile
+- docker-compose.yml
+- docs/storage.md
 
 
 LIMITACIONES Y VALIDACIONES PENDIENTES
@@ -181,23 +212,16 @@ LIMITACIONES Y VALIDACIONES PENDIENTES
 - Registro de usuario, recuperación de contraseña, portada del evento y editor avanzado
   de configuración descritos en estructura_app.txt todavía no están implementados.
 - No se ha configurado un proveedor real de pagos.
-- Room muestra una advertencia de exportación de esquema durante KSP; conviene aplicar
-  el plugin de Room y guardar los esquemas antes de continuar agregando migraciones.
+- No se pudo validar todavía el recorrido X-Accel-Redirect contra una instancia real
+  de Caddy porque Docker Engine no está instalado en esta máquina.
 
 
 LO QUE FALTA
 
 FASE 8 - ENTREGA PÚBLICA
-- Generar miniaturas mediante Celery y ffmpeg/ffprobe.
-- Cambiar Video de UPLOADED a PROCESSING y READY.
-- Implementar galería pública mobile-first por evento.
-- Implementar página pública individual del video.
-- Reproducción con solicitudes HTTP Range.
-- Descarga segura a través de Caddy sin exponer rutas internas.
-- Generar y mostrar QR general del evento e individual por video en Android.
 - Añadir preview, enlace y acción Grabar otro después de una captura sincronizada.
-- Agregar estadísticas mínimas de acceso sin datos invasivos.
-- Probar estados pendiente, disponible, expirado y no encontrado.
+- Ejecutar la prueba real de delegación con Caddy y la prueba completa con Redis,
+  Celery y dos dispositivos.
 
 FASE 9 - RETENCIÓN, OPERACIÓN Y HARDENING
 - Tareas idempotentes de expiración y eliminación.
@@ -231,30 +255,26 @@ PLAN EXACTO PARA RETOMAR EN OTRA SESIÓN
 
 1. Leer este archivo, docs/roadmap.md, docs/api.md y docs/android-sync.md.
 2. Revisar el estado del workspace sin borrar cambios existentes.
-3. Ejecutar las pruebas del backend y Android para establecer una línea base.
-4. Configurar la exportación de esquemas Room y guardar el esquema de la versión 3.
-5. Iniciar la Fase 8 por el backend:
-   a) agregar ffprobe para validar metadata;
-   b) crear tarea Celery de miniatura y transición READY;
-   c) guardar miniatura mediante StorageService;
-   d) añadir pruebas idempotentes.
-6. Implementar entrega HTTP:
-   a) endpoint o respuesta interna protegida para Caddy;
-   b) soporte Range 206 y error 416;
-   c) descarga y reproducción sin revelar storage_key;
-   d) pruebas de autorización pública y expiración.
-7. Completar las plantillas públicas mobile-first del evento y video.
-8. Integrar Android:
-   a) dependencia para generar QR localmente;
-   b) pantalla QR del evento;
-   c) pantalla Video listo con QR individual;
-   d) preview, compartir enlace y Grabar otro;
-   e) estados offline y pendiente de subida.
-9. Ejecutar pruebas backend y Android.
-10. Levantar el sistema completo y realizar una prueba física:
+3. Ejecutar como línea base:
+   a) desde backend/: ../.venv/bin/python manage.py test --settings=config.settings.test
+   b) desde android/: ./gradlew testDebugUnitTest assembleDebug
+4. Completar el flujo Android posterior a una captura sincronizada:
+   a) preview o acceso claro al video;
+   b) enlace público y acción Compartir;
+   c) QR individual actualizado según estado;
+   d) acción Grabar otro;
+   e) estados visibles para pendiente, subiendo, procesando, listo y expirado.
+5. Mantener testDebugUnitTest y assembleDebug en verde y agregar pruebas unitarias
+   para cualquier lógica nueva de presentación.
+6. Instalar o habilitar Docker Engine y validar `docker compose config` y el Caddyfile.
+7. Levantar backend, PostgreSQL, Redis, Celery y Caddy mediante Docker Compose.
+8. Probar que Django autoriza y Caddy entrega video y miniatura, incluyendo Range 206,
+   rango inválido 416, descarga, token inexistente y evento expirado.
+9. Realizar una prueba física completa:
     grabar tres videos, cortar la red, recuperarla, confirmar subida, escanear QR,
     reproducir y descargar.
-11. Documentar resultados y actualizar el roadmap antes de iniciar la Fase 9.
+10. Documentar resultados y cerrar la Fase 8 únicamente si cumple el criterio inferior.
+11. Después iniciar la Fase 9 con expiración y eliminación idempotente.
 
 
 CRITERIO PARA CERRAR LA FASE 8
@@ -269,5 +289,6 @@ NOTA PARA LA SIGUIENTE SESIÓN
 
 La instrucción recomendada es:
 
-"Lee CONTINUIDAD_PROYECTO.txt y continúa desde la Fase 8. Verifica primero el estado
-actual y conserva las decisiones ya implementadas."
+"Lee CONTINUIDAD_PROYECTO.txt y termina la Fase 8 desde el flujo Android posterior a
+la sincronización. Verifica primero el estado actual, conserva todos los cambios y no
+inicies la Fase 9 hasta validar el recorrido integral."

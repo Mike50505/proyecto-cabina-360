@@ -47,6 +47,7 @@ services:
     <<: *backend
     environment:
       RUN_MIGRATIONS: "1"
+      CADDY_ACCEL_REDIRECT_ENABLED: "1"
     command:
       - gunicorn
       - config.wsgi:application
@@ -84,6 +85,7 @@ services:
     volumes:
       - ./infrastructure/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - static_data:/srv/static:ro
+      - media_data:/srv/media:ro
       - caddy_data:/data
       - caddy_config:/config
 
@@ -94,4 +96,3 @@ volumes:
   static_data:
   caddy_data:
   caddy_config:
-

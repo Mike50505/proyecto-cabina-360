@@ -40,8 +40,20 @@ class StorageService:
             )
         )
 
+    @staticmethod
+    def thumbnail_key(operator_id, event_id, video_id) -> str:
+        return str(
+            PurePosixPath(
+                "operators",
+                str(operator_id),
+                "events",
+                str(event_id),
+                "thumbnails",
+                f"{video_id}.jpg",
+            )
+        )
+
     def delete_many(self, keys) -> None:
         for key in keys:
             if key:
                 self.provider.delete(key)
-

@@ -31,6 +31,7 @@ data class CaptureUiState(
     val countdown: Int? = null,
     val elapsedMs: Long = 0,
     val error: String? = null,
+    val publicUrl: String? = null,
 )
 
 class CaptureViewModel(
@@ -85,14 +86,27 @@ class CaptureViewModel(
                 _state.value = _state.value.copy(phase = CapturePhase.ERROR, error = errorMessage ?: "No se pudo guardar el video.")
             } else {
                 runCatching { container.captureRepository.complete(eventId, capture, _state.value.elapsedMs) }
-                    .onSuccess { _state.value = _state.value.copy(phase = CapturePhase.SAVED, error = null) }
+                    .onSuccess { video ->
+                        _state.value = _state.value.copy(
+                            phase = CapturePhase.SAVED,
+                            error = null,
+                            publicUrl = video.publicUrl,
+                        )
+                    }
                     .onFailure { _state.value = _state.value.copy(phase = CapturePhase.ERROR, error = it.message) }
             }
             pending = null
         }
     }
 
-    fun readyAgain() { _state.value = _state.value.copy(phase = CapturePhase.READY, elapsedMs = 0, error = null) }
+    fun readyAgain() {
+        _state.value = _state.value.copy(
+            phase = CapturePhase.READY,
+            elapsedMs = 0,
+            error = null,
+            publicUrl = null,
+        )
+    }
 
     override fun onCleared() {
         countdownJob?.cancel()

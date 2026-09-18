@@ -289,6 +289,12 @@ def complete_upload_session(session: UploadSession) -> UploadSession:
     )
     part_keys = [part.storage_key for part in parts]
     transaction.on_commit(lambda: _delete_part_files(part_keys))
+    from apps.videos.tasks import prepare_public_video
+
+    transaction.on_commit(
+        lambda: prepare_public_video.delay(str(session.video_id)),
+        robust=True,
+    )
     logger.info(
         "video_uploaded",
         extra={"metadata": {"video_id": str(session.video_id), "size": stored.size}},

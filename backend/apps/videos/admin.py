@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Video
+from .models import PublicVideoAccess, Video
 
 
 @admin.register(Video)
@@ -26,3 +26,10 @@ class VideoAdmin(admin.ModelAdmin):
         "updated_at",
     )
 
+
+@admin.register(PublicVideoAccess)
+class PublicVideoAccessAdmin(admin.ModelAdmin):
+    list_display = ("video", "action", "created_at")
+    list_filter = ("action", "created_at")
+    search_fields = ("video__id", "video__event__name")
+    readonly_fields = ("video", "action", "ip_hash", "user_agent", "created_at")

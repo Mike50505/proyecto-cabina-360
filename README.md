@@ -4,7 +4,7 @@ SaaS para operadores de cabinas de video 360, diseñado para grabar sin conexió
 
 ## Estado
 
-Las fases 1 a 7 están implementadas. El backend cubre identidad, suscripciones, eventos, acceso público y cargas reanudables. La app Android incluye sesión segura, navegación, captura durable, procesamiento básico y sincronización reanudable con WorkManager.
+Las fases 1 a 7 están implementadas y la fase 8 está en validación de integración. El backend cubre identidad, suscripciones, eventos, cargas reanudables, procesamiento y entrega pública protegida. La app Android incluye sesión segura, navegación, captura durable, procesamiento básico, sincronización reanudable y códigos QR.
 
 ## Requisitos
 

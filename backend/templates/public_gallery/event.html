@@ -6,7 +6,24 @@
   <h1>{{ event.name }}</h1>
   <p>{{ event.event_date|date:"j \d\e F \d\e Y" }}</p>
   {% if event.description %}<p>{{ event.description }}</p>{% endif %}
-  <div class="status">La galería estará disponible aquí</div>
+  <div class="status">{{ videos|length }} video{{ videos|length|pluralize }}</div>
 </section>
+{% if videos %}
+<section class="gallery" aria-label="Videos disponibles">
+  {% for video in videos %}
+  <a class="video-card" href="{% url 'public-video' video.public_token %}">
+    <img src="{% url 'public-video-thumbnail' video.public_token %}" alt="Miniatura del video" loading="lazy">
+    <div>
+      <strong>Video {{ forloop.revcounter }}</strong>
+      <span>{{ video.created_at|date:"H:i" }} · Disponible</span>
+    </div>
+  </a>
+  {% endfor %}
+</section>
+{% else %}
+<section class="empty">
+  <strong>Aún no hay videos disponibles</strong>
+  <p>Los videos aparecerán aquí conforme terminen de prepararse.</p>
+</section>
+{% endif %}
 {% endblock %}
-

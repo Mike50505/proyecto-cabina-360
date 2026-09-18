@@ -109,6 +109,7 @@ MEDIA_ROOT = Path(env("LOCAL_STORAGE_ROOT", str(BASE_DIR / "media")))
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 STORAGE_BACKEND = env("STORAGE_BACKEND", "local")
+CADDY_ACCEL_REDIRECT_ENABLED = env_bool("CADDY_ACCEL_REDIRECT_ENABLED", False)
 PUBLIC_BASE_URL = env("PUBLIC_BASE_URL", "http://localhost")
 EVENT_BASE_URL = env("EVENT_BASE_URL", f"{PUBLIC_BASE_URL}/e")
 VIDEO_RETENTION_DEFAULT_DAYS = int(env("VIDEO_RETENTION_DEFAULT_DAYS", "30"))
@@ -158,5 +159,9 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": env("LOG_LEVEL", "INFO")},
     "loggers": {
         "django.server": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+    "enqueue-unprocessed-videos": {
+        "task": "apps.videos.tasks.enqueue_unprocessed_videos",
+        "schedule": 5 * 60,
     },
 }

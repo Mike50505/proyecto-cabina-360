@@ -1,0 +1,17 @@
+{% extends "public_gallery/base.html" %}
+{% block title %}Tu video · {{ event.name }}{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="eyebrow">{{ event.name }}</div>
+  <h1>Tu video está listo</h1>
+  <p>Reprodúcelo aquí o guárdalo en tu dispositivo.</p>
+  <video class="player" controls playsinline preload="metadata" poster="{% url 'public-video-thumbnail' video.public_token %}">
+    <source src="{% url 'public-video-stream' video.public_token %}" type="{{ video.mime_type }}">
+    Tu navegador no puede reproducir este video.
+  </video>
+  <div class="actions">
+    <a class="button" href="{% url 'public-video-download' video.public_token %}">Descargar video</a>
+    <a class="button secondary" href="{% url 'public-event' event.public_token %}">Ver galería</a>
+  </div>
+</section>
+{% endblock %}

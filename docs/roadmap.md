@@ -92,6 +92,11 @@ Salida: al recuperar Internet, los videos llegan una sola vez y Android los conf
 
 ## 8. Entrega pública
 
+Estado: en implementación. El procesamiento, las miniaturas, la galería, la página
+individual, las respuestas Range, el registro mínimo de accesos, QR Android y la
+delegación protegida de archivos a Caddy ya están en código; falta la verificación
+completa en un entorno con Docker, servicios activos y dispositivos físicos.
+
 - Miniaturas con Celery y FFmpeg/ffprobe.
 - Galería mobile-first, QR y página individual.
 - Reproducción Range y descarga autorizada a través de Caddy.

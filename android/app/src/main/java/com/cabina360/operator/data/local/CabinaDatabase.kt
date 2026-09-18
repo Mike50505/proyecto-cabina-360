@@ -125,7 +125,7 @@ interface ReservedTokenDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertAll(tokens: List<LocalReservedToken>)
 
-    @Query("SELECT * FROM reserved_tokens WHERE eventId = :eventId AND assignedVideoId IS NULL AND status = 'RESERVED' LIMIT 1")
+    @Query("SELECT * FROM reserved_tokens WHERE eventId = :eventId AND assignedVideoId IS NULL AND status = 'AVAILABLE' LIMIT 1")
     suspend fun firstAvailable(eventId: String): LocalReservedToken?
 
     @Query("UPDATE reserved_tokens SET assignedVideoId = :videoId, status = 'ASSIGNED' WHERE id = :tokenId AND assignedVideoId IS NULL")

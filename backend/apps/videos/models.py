@@ -61,3 +61,25 @@ class Video(models.Model):
     def __str__(self) -> str:
         return f"{self.event.name} · {self.id}"
 
+
+class PublicVideoAccess(models.Model):
+    class Action(models.TextChoices):
+        VIEW = "VIEW", "Vista"
+        STREAM = "STREAM", "Reproducción"
+        DOWNLOAD = "DOWNLOAD", "Descarga"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="public_accesses")
+    action = models.CharField(max_length=12, choices=Action.choices)
+    ip_hash = models.CharField(max_length=64, blank=True)
+    user_agent = models.CharField(max_length=255, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        indexes = [
+            models.Index(
+                fields=("video", "action", "created_at"),
+                name="videos_access_lookup_idx",
+            ),
+        ]

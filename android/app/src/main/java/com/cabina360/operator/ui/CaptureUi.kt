@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -80,6 +81,15 @@ fun EventScreen(
     val event by vm.event.collectAsStateWithLifecycle()
     val videos by vm.videos.collectAsStateWithLifecycle()
     val uploads by vm.uploads.collectAsStateWithLifecycle()
+    var showEventQr by remember { mutableStateOf(false) }
+    val currentEvent = event
+    if (showEventQr && currentEvent != null) {
+        PublicQrDialog(
+            title = currentEvent.name,
+            url = currentEvent.publicUrl,
+            onDismiss = { showEventQr = false },
+        )
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -101,6 +111,14 @@ fun EventScreen(
                         Button(onRecord, modifier = Modifier.fillMaxWidth().height(64.dp)) {
                             Icon(Icons.Default.Videocam, null)
                             Text("  GRABAR VIDEO")
+                        }
+                        Button(
+                            onClick = { showEventQr = true },
+                            enabled = currentEvent != null,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Icon(Icons.Default.QrCode, null)
+                            Text("  MOSTRAR QR")
                         }
                     }
                 }
@@ -229,6 +247,13 @@ fun CameraScreen(container: AppContainer, eventId: String, onBack: () -> Unit) {
                 Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text("VIDEO GUARDADO", style = MaterialTheme.typography.headlineSmall)
                     Text("El original quedó protegido en el dispositivo.")
+                    state.publicUrl?.let { url ->
+                        PublicQr(url, Modifier.size(220.dp))
+                        Text("Escanea para obtener tu video", style = MaterialTheme.typography.bodyMedium)
+                    } ?: Text(
+                        "Sin conexión: el QR aparecerá cuando se reserve un enlace.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                     Button(vm::readyAgain) { Text("GRABAR OTRO") }
                 }
             }

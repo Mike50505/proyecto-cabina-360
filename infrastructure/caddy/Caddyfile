@@ -14,6 +14,17 @@
             health_headers {
                 Host localhost
             }
+
+            @accel header X-Accel-Redirect *
+            handle_response @accel {
+                root * /srv/media
+                rewrite {rp.header.X-Accel-Redirect}
+                method GET
+                copy_response_headers {
+                    include Content-Type Content-Disposition Cache-Control X-Content-Type-Options
+                }
+                file_server
+            }
         }
     }
 
